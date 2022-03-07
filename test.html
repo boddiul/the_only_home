@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iFrame test</title>
+    <style>
+        #target {
+            width: 360px;
+            height: 540px;
+            overflow-y: auto;
+            overflow-x: auto;
+            resize: both;
+            z-index: 2;
+            position: relative;
+        }
+        iframe {
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<div id="target">
+    <iframe src="./index.html"></iframe>
+</div>
+</body>
+</html>
