@@ -52,6 +52,21 @@ PreloadState.prototype = {
         game.load.spritesheet('stuff21', 'assets/stuff21.png',316/2,135);
 
 
+        game.load.spritesheet('button_transition', 'assets/button_transition.png',120,120);
+
+        game.load.image('bar', 'assets/level1/bar.png');
+
+        game.load.image('back_gradient1', 'assets/level1/back_gradient.png');
+        game.load.image('background1', 'assets/level1/background.png');
+        game.load.spritesheet('button_light', 'assets/level1/button_light.png',286/2,265);
+
+        game.load.image('carcass', 'assets/level1/carcass.png');
+
+        for (let i=0;i<8;i++)
+            game.load.image('room'+i, 'assets/level1/room'+i+'.png');
+
+
+
     }
     ,
 

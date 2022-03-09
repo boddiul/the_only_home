@@ -102,6 +102,89 @@ GameState.prototype = {
             this.houseGroup.add(this.stuff[i])
         }
 
+        let b_pos = [[180,440],[-450,580],[370,1140]]
+        this.button_transition = []
+
+        for (let i=0;i<3;i++)
+        {
+            this.button_transition.push(game.add.button(b_pos[i][0],b_pos[i][1],'button_transition',function () {
+
+                if (!this.levelOpened)
+                    this.openLevel(i)
+            },this,3+i,i,3+i,i))
+            this.button_transition[i].scale.set(1.5,1.5)
+            this.button_transition[i].visible = false;
+            this.button_transition[i].active = false;
+            this.button_transition[i].alpha = 0;
+
+            this.houseGroup.add(this.button_transition[i])
+        }
+
+
+        this.levelOpened = false;
+        this.currentLevel = -1;
+
+
+        this.levelGroup = [null,null,null]
+
+
+        this.back_gradient1 = game.add.image(0,0,'back_gradient1');
+        this.visible = false;
+        this.back_gradient1.alpha = 0;
+        this.back_gradient1.scale.set(4,4);
+
+        this.levelGroup[1] = game.add.group();
+
+        let back1 = game.add.image(0,100,'background1')
+        back1.anchor.set(0.5,0);
+
+        this.levelGroup[1].add(back1);
+
+        let coords1 = [[-10,405],[-392,520],[-168,520],[0,750],[-392,750],[-54,870],[-52,520],[140,520]]
+
+        let coords2 = [[-1.5,0],[-0.5,0],[0.5,0],[1.5,0],[-1.5,1],[-0.5,1],[0.5,1],[1.5,1]]
+
+        this.room = [];
+        this.lightButton = [];
+
+        this.lightOn = [];
+
+
+        for (let i=0;i<8;i++)
+        {
+            this.lightOn.push(false);
+
+            this.room.push(game.add.image(coords1[i][0],coords1[i][1],'room'+i));
+            this.room[i].alpha = 0;
+            this.levelGroup[1].add(this.room[i]);
+
+            this.lightButton.push(game.add.button(coords2[i][0]*225,1400+coords2[i][1]*330,'button_light',function () {
+
+                this.lightOn[i] = !this.lightOn[i];
+            },this));
+            this.lightButton[i].anchor.set(0.5,0.5);
+
+            this.levelGroup[1].add(this.lightButton[i]);
+        }
+
+
+        let carcass = game.add.image(0,100,'carcass')
+        carcass.anchor.set(0.5,0);
+
+
+        this.levelGroup[1].add(carcass);
+
+        this.level1_bar = game.add.image(-167,270,'bar');
+        this.level1_bar.anchor.set(0,0.5);
+
+
+        this.levelGroup[1].add(this.level1_bar);
+
+
+        this.levelGroup[1].add(this.level1_bar);
+
+        this.levelGroup[1].y = -GAME_HEIGHT
+
         game.input.onDown.add(this.click, this);
 
 
@@ -117,6 +200,7 @@ GameState.prototype = {
         //this.changeCamera(280,700,1.9,1)
 
         this.nextMenuState();
+
 
 
 
@@ -136,12 +220,69 @@ GameState.prototype = {
                 break;
             case 2:
                 this.changeCamera(0,0,1,1)
+
+
+                for (let i=0;i<3;i++)
+                {
+                    this.button_transition[i].visible = true;
+                    this.button_transition[i].active = true;
+
+                    let tween = this.game.add.tween(this.button_transition[i]);
+                    tween.to({alpha:1},
+                        Phaser.Timer.SECOND*(3+i*1.5),
+                        Phaser.Easing.Quartic.Out
+                    );
+                    tween.onComplete.add(function () {
+                    }.bind(this));
+                    tween.start();
+                }
                 break;
         }
 
         this.menuState+=1;
     },
 
+    openLevel : function (i) {
+
+        i = 1;
+
+        this.levelOpened = true;
+
+        this.currentLevel = i;
+
+
+        this.levelGroup[i].y = -GAME_HEIGHT;
+        let tween = this.game.add.tween(this.levelGroup[i]);
+        tween.to({y:0},
+            Phaser.Timer.SECOND,
+            Phaser.Easing.Back.Out
+        );
+        tween.start();
+
+        switch (this.currentLevel) {
+            case 0:
+                break;
+
+            case 1:
+
+                this.nextTime = 2;
+                this.energy = 1;
+
+                this.back_gradient1.visible = true;
+                tween = this.game.add.tween(this.back_gradient1);
+                tween.to({alpha:1},
+                    Phaser.Timer.SECOND,
+                    Phaser.Easing.Quartic.Out
+                );
+                tween.start();
+                break;
+
+            case 2:
+                break;
+        }
+
+
+    },
     changeCamera : function (x,y,scale,time) {
 
 
@@ -188,6 +329,8 @@ GameState.prototype = {
 
 
 
+        this.levelGroup[1].x = GAME_WIDTH/2;
+
         if (this.menuState>=0 && this.menuState<=2)
         {
             let activeStuff = false;
@@ -204,6 +347,60 @@ GameState.prototype = {
         }
 
 
+
+        switch (this.currentLevel)
+        {
+            case 0:
+                break;
+
+
+            case 1:
+
+
+
+                this.nextTime -= 1/60;
+
+                this.level1_bar.scale.x = this.energy
+
+                if (this.nextTime<=0)
+                {
+
+                    for (let i=0;i<8;i++)
+                        this.lightOn[i] = Math.random()<0.3
+
+                    this.nextTime = 2;
+                }
+
+                for (let i=0;i<8;i++)
+                {
+                    if (this.lightOn[i])
+                    {
+                        this.energy -= 0.0003
+                        if (this.room[i].alpha<1-1/5)
+                            this.room[i].alpha+=1/5;
+                        else
+                            this.room[i].alpha = 1;
+
+                        this.lightButton[i].frame = 1;
+                    }
+                    else
+                    {
+                        if (this.room[i].alpha>1/5)
+                            this.room[i].alpha-=1/5;
+                        else
+                            this.room[i].alpha = 0;
+
+
+                        this.lightButton[i].frame = 0;
+                    }
+
+                }
+
+                break;
+
+            case 2:
+                break;
+        }
 
 
 
