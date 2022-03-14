@@ -102,7 +102,7 @@ GameState.prototype = {
             this.houseGroup.add(this.stuff[i])
         }
 
-        let b_pos = [[180,440],[-450,580],[370,1140]]
+        let b_pos = [[100,360],[-470,690],[230,1050]]
         this.button_transition = []
 
         for (let i=0;i<3;i++)
@@ -127,11 +127,65 @@ GameState.prototype = {
 
         this.levelGroup = [null,null,null]
 
+        this.back_gradient = [null, null, null]
+        // LVL0
 
-        this.back_gradient1 = game.add.image(0,0,'back_gradient1');
-        this.visible = false;
-        this.back_gradient1.alpha = 0;
-        this.back_gradient1.scale.set(4,4);
+
+
+        this.back_gradient[0] = game.add.image(0,0,'back_gradient0');
+        this.back_gradient[0].visible = false;
+        this.back_gradient[0].alpha = 0;
+        this.back_gradient[0].scale.set(4,4);
+
+        this.levelGroup[0] = game.add.group();
+
+        back0 = game.add.image(0,100,'background0');
+        back0.anchor.set(0.5,0);
+
+        this.levelGroup[0].add(back0);
+
+
+        this.flower = []
+        this.tool = []
+        this.button_flower = []
+        for (let i=0; i<3; i++)
+        {
+            let xx = -300+i*300
+
+            let w = game.add.image(xx,560,'window');
+            w.anchor.set(0.5, 0.5)
+            this.levelGroup[0].add(w);
+
+            let f = game.add.button(xx,730,'flower', function () {
+
+                this.clickFlower(i);
+            });
+            f.anchor.set(0.5, 0.5)
+            this.levelGroup[0].add(f);
+
+            let t = game.add.image(xx,500,'tool');
+            t.anchor.set(0.5, 0.5)
+            t.visible = false;
+            this.levelGroup[0].add(t);
+
+            let b = game.add.button(xx,1840,'button_flower',function () {
+
+                this.clickFlowerButton(i);
+            },this);
+            b.frame = i*2;
+            b.anchor.set(0.5, 0.5)
+            this.levelGroup[0].add(b);
+        }
+
+
+        //this.timer
+
+        // LVL1
+
+        this.back_gradient[1] = game.add.image(0,0,'back_gradient1');
+        this.back_gradient[1].visible = false;
+        this.back_gradient[1].alpha = 0;
+        this.back_gradient[1].scale.set(4,4);
 
         this.levelGroup[1] = game.add.group();
 
@@ -183,26 +237,57 @@ GameState.prototype = {
 
         this.levelGroup[1].add(this.level1_bar);
 
-        this.levelGroup[1].y = -GAME_HEIGHT
+
+
+        // LVL2
+
+
+
+        this.back_gradient[2] = game.add.image(0,0,'back_gradient2');
+        this.back_gradient[2].visible = false;
+        this.back_gradient[2].alpha = 0;
+
+        this.levelGroup[2] = game.add.group();
+
+        //this.levelGroup[2].add(back2);
+
+        //////
+
+        for (let i=0;i<3;i++)
+            this.levelGroup[i].y = -GAME_HEIGHT
 
         game.input.onDown.add(this.click, this);
 
 
 
+        //this.nextMenuState();
 
 
-        //game.camera.view.x = GAME_WIDTH/2;
-        //game.camera.view.y = GAME_HEIGHT/2;
+        this.intro = game.add.group();
 
-
-        //this.changeCamera(0,150,2,1)
-        //this.changeCamera(-250,600,1.7,1)
-        //this.changeCamera(280,700,1.9,1)
-
-        this.nextMenuState();
+        this.logo_back = game.add.image(0,0,'logo_back');
+        this.logo_back.anchor.set(0.5,0);
+        this.intro.add(this.logo_back);
 
 
 
+        /*this.logo = game.add.image(0,300,'logo');
+        this.logo.anchor.set(0.5,0);
+        this.intro.add(this.logo);*/
+
+        let tween = this.game.add.tween(this.intro);
+
+        tween.to({alpha:0},
+            Phaser.Timer.SECOND*0.5,
+            Phaser.Easing.Quartic.In,
+            true,
+            Phaser.Timer.SECOND*0.5
+        );
+        tween.onComplete.add(function () {
+            this.intro.visible = false;
+            this.nextMenuState();
+        }.bind(this));
+        tween.start();
 
     },
 
@@ -259,30 +344,65 @@ GameState.prototype = {
         );
         tween.start();
 
+
+        this.back_gradient[i].visible = true;
+        tween = this.game.add.tween(this.back_gradient[i]);
+        tween.to({alpha:1},
+            Phaser.Timer.SECOND,
+            Phaser.Easing.Quartic.Out
+        );
+        tween.start();
+
         switch (this.currentLevel) {
             case 0:
-                break;
 
+
+                break;
             case 1:
 
                 this.nextTime = 2;
                 this.energy = 1;
 
-                this.back_gradient1.visible = true;
-                tween = this.game.add.tween(this.back_gradient1);
-                tween.to({alpha:1},
-                    Phaser.Timer.SECOND,
-                    Phaser.Easing.Quartic.Out
-                );
-                tween.start();
                 break;
 
             case 2:
+
                 break;
         }
 
 
     },
+
+    closeLevel : function() {
+
+
+
+
+
+        this.levelGroup[this.currentLevel].y = 0;
+        let tween = this.game.add.tween(this.levelGroup[this.currentLevel]);
+        tween.to({y:-GAME_HEIGHT},
+            Phaser.Timer.SECOND,
+            Phaser.Easing.Back.In
+        );
+        tween.start();
+
+
+        tween = this.game.add.tween(this.back_gradient[this.currentLevel]);
+        tween.to({alpha:0},
+            Phaser.Timer.SECOND,
+            Phaser.Easing.Quartic.Out
+        );
+        tween.onComplete.add(function () {
+            this.back_gradient[this.currentLevel].visible = false;
+            this.currentLevel = -1;
+            this.levelOpened = false;
+        }.bind(this))
+        tween.start();
+
+
+    },
+
     changeCamera : function (x,y,scale,time) {
 
 
@@ -300,7 +420,17 @@ GameState.prototype = {
 
 
 
+    clickFlowerButton : function(i) {
 
+
+    },
+
+
+
+    clickFlower : function(i) {
+
+
+    },
 
     click : function (pointer) {
 
@@ -328,8 +458,12 @@ GameState.prototype = {
         this.houseGroup.y = -this.cameraY*this.cameraScale;
 
 
+        for (let i=0; i<3; i++)
+            this.levelGroup[i].x = GAME_WIDTH/2;
 
-        this.levelGroup[1].x = GAME_WIDTH/2;
+
+
+        this.intro.x = GAME_WIDTH/2;
 
         if (this.menuState>=0 && this.menuState<=2)
         {
