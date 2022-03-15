@@ -23,6 +23,10 @@ PreloadState.prototype = {
         this.game.scale.pageAlignVertically = true;
 
 
+        this.preloadText = game.add.text(GAME_WIDTH, GAME_HEIGHT, "a", { font: "40px digital", fill: "#FFEEDE", align: "center", boundsAlignH: "center", boundsAlignV: "middle" });
+
+
+
         game.load.image('back', 'assets/back.jpg');
         game.load.image('house', 'assets/house.png');
         game.load.image('transition_pos', 'assets/transition_pos.png');
@@ -73,6 +77,7 @@ PreloadState.prototype = {
         game.load.image('warn', 'assets/level0/warn.png');
         game.load.spritesheet('window', 'assets/level0/window.png',447/2,244);
         game.load.image('back_gradient0', 'assets/level0/back_gradient.png');
+        game.load.image('pot_zone', 'assets/level0/pot_zone.png');
 
         game.load.image('back_gradient2', 'assets/level2/back_gradient.png');
         game.load.spritesheet('items', 'assets/level2/items.png',487/3,122);
@@ -82,6 +87,11 @@ PreloadState.prototype = {
 
         game.load.image('logo', 'assets/logo.png');
         game.load.image('logo_back', 'assets/logo_back.png');
+
+
+
+        game.load.image('window_win', 'assets/window_win.png');
+        game.load.image('window_lose', 'assets/window_lose.png');
     }
     ,
 
