@@ -509,7 +509,7 @@ GameState.prototype = {
             Phaser.Timer.SECOND,
             Phaser.Easing.Cubic.InOut,
             false,
-            Phaser.Timer.SECOND
+            Phaser.Timer.SECOND*3
         );
         tween.onComplete.add(function () {
             let tween2 = this.game.add.tween(this.intro);
@@ -619,7 +619,7 @@ GameState.prototype = {
                 Phaser.Timer.SECOND*0.5,
                 Phaser.Easing.Quartic.In,
                 false,
-                Phaser.Timer.SECOND*0.5
+                Phaser.Timer.SECOND*1
 
             );
             tween2.onComplete.add(function () {
@@ -802,7 +802,17 @@ GameState.prototype = {
 
         if (this.selectedTrash===-1)
         {
-            this.selectedTrash = i;
+            let empty = true;
+
+
+            for (let j=0;j<3;j++)
+                if (this.trashData[i][j]!==-1)
+                    empty = false;
+
+
+
+            if (!empty)
+                this.selectedTrash = i;
         }
         else
         {
@@ -830,6 +840,29 @@ GameState.prototype = {
 
                 if (t1.length>0 && t2.length<3)
                 {
+
+                    let movingType = this.trash[t1[t1.length-1]].frame;
+
+                    let p2 = t1.length-1;
+                    let p1 = t1.length-1;
+
+                    let op2 = t2.length-1;
+
+                    while (p1>0 && (this.trash[t1[p1-1]].frame===movingType))
+                        p1-=1;
+
+
+                    for (let k=p1;k<=p2;k++)
+                        if (t2.length<3)
+                        {
+                            t2.push(0);
+
+                            this.trashData[i][t2.length-1] = this.trashData[this.selectedTrash][k]
+                            this.trashData[this.selectedTrash][k] = -1;
+
+
+                        }
+
 
 
                     this.selectedTrash = -1;
@@ -899,7 +932,6 @@ GameState.prototype = {
 
         let scaleP = (GAME_WIDTH-1000)/1000
 
-        console.log(scaleP);
 
 
         this.intro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
@@ -1140,6 +1172,7 @@ GameState.prototype = {
                     this.timer2.text = "00:"+(Math.floor(this.timeLeft)<10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
+                    let winState = true;
                     for (let i=0;i<6;i++)
                     {
                         this.trashcan[i].x = this.trashcanPosition[i][0]
@@ -1154,8 +1187,29 @@ GameState.prototype = {
                                 this.trash[k].x = this.trashcanPosition[i][0]
 
                                 this.trash[k].y = this.trashcanPosition[i][1]-170-j*120
+
+
+                                if (this.trashData[i][0]!==-1)
+
+                                    if (this.trash[k].frame !== this.trash[this.trashData[i][0]].frame)
+                                        winState = false;
                             }
+                            else
+                            {
+
+                                if (this.trashData[i][0]!==-1)
+                                    winState = false;
+                            }
+
+
+
+
                     }
+
+
+                    if (!this.gameOver)
+                        if (winState)
+                            this.winLevel();
 
                     break;
             }
