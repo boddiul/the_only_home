@@ -73,25 +73,29 @@ PreloadState.prototype = {
         game.load.image('background0', 'assets/level0/background.png');
         game.load.spritesheet('button_flower', 'assets/level0/button_flower.png',600/2,900/3);
         game.load.spritesheet('flower', 'assets/level0/flower.png',994/3,1369/3);
-        game.load.spritesheet('tool', 'assets/level0/tool.png',991/3,381);
+        game.load.spritesheet('tool', 'assets/level0/tool.png',1200/3,381);
         game.load.image('warn', 'assets/level0/warn.png');
         game.load.spritesheet('window', 'assets/level0/window.png',447/2,244);
         game.load.image('back_gradient0', 'assets/level0/back_gradient.png');
         game.load.image('pot_zone', 'assets/level0/pot_zone.png');
 
         game.load.image('back_gradient2', 'assets/level2/back_gradient.png');
-        game.load.spritesheet('items', 'assets/level2/items.png',487/3,122);
-        game.load.image('trashcan', 'assets/level2/trashcan.png');
+        game.load.spritesheet('items', 'assets/level2/items.png',487/4,122);
+        game.load.spritesheet('trashcan', 'assets/level2/trashcan.png',556/2,470);
+        game.load.image('timer2', 'assets/level2/timer.png');
 
 
 
         game.load.image('logo', 'assets/logo.png');
         game.load.image('logo_back', 'assets/logo_back.png');
 
+        game.load.image('intro_box', 'assets/intro_box.png');
 
 
-        game.load.image('window_win', 'assets/window_win.png');
-        game.load.image('window_lose', 'assets/window_lose.png');
+        game.load.spritesheet('window_win', 'assets/window_win.png',3365/3,1312);
+        game.load.spritesheet('button_box', 'assets/button_box.png',1082,2023/6);
+        game.load.spritesheet('button_box2', 'assets/button_box2.png',529,682/2);
+
     }
     ,
 

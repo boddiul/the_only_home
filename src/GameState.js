@@ -117,9 +117,9 @@ GameState.prototype = {
                     this.openLevel(i)
             },this,3+i,i,3+i,i))
             this.button_transition[i].scale.set(1.5,1.5)
-            /*this.button_transition[i].visible = false;
+            this.button_transition[i].visible = false;
             this.button_transition[i].active = false;
-            this.button_transition[i].alpha = 0;*/
+            this.button_transition[i].alpha = 0;
 
             this.houseGroup.add(this.button_transition[i])
         }
@@ -152,7 +152,9 @@ GameState.prototype = {
         this.window = []
         this.flower = []
         this.tool = []
-        this.buttonFlower = []
+        this.buttonFlower = [];
+
+        this.flowerTool = [];
         this.warn = []
         for (let i=0; i<3; i++)
         {
@@ -183,6 +185,7 @@ GameState.prototype = {
             let t = game.add.image(xx,500,'tool');
             t.anchor.set(0.5, 0.5)
             t.visible = false;
+            this.flowerTool.push(t);
             this.levelGroup[0].add(t);
 
             let b = game.add.button(xx,1840,'button_flower',function () {
@@ -270,8 +273,6 @@ GameState.prototype = {
         this.levelGroup[1].add(this.timer1);
 
 
-
-
         // LVL2
 
 
@@ -283,14 +284,48 @@ GameState.prototype = {
         this.levelGroup[2] = game.add.group();
 
 
+        this.trashcanPosition = []
+        this.trashcan = [];
         for (let i=0;i<6;i++)
         {
-            let tr = this.game.add.image(((i % 3)-1)*350, 1100 + Math.floor(i/3)*600,'trashcan')
+            this.trashcanPosition.push([((i % 3)-1)*350, 1100 + Math.floor(i/3)*600])
+
+            let tr = this.game.add.button(0,0,'trashcan',function () {
+                this.clickTrash(i);
+            },this)
             tr.scale.set(1.2,1.2);
             tr.anchor.set(0.5,1);
             this.levelGroup[2].add(tr)
 
+            this.trashcan.push(tr);
+
         }
+
+
+        this.trash = []
+
+        for (let i=0;i<4;i++)
+        {
+            for (let j=0;j<3;j++)
+                {
+                    let tr = this.game.add.image(0,0,'items');
+                    tr.anchor.set(0.5,0.5);
+                    tr.scale.set(1.2,1.2);
+                    tr.frame = i;
+                    this.trash.push(tr);
+                    this.levelGroup[2].add(tr)
+                }
+        }
+
+
+
+        let timerBack = game.add.image(0,200,'timer2');
+        timerBack.anchor.set(0.5,0.5);
+        this.levelGroup[2].add(timerBack);
+
+        this.timer2 = game.add.text(0, 135, "00:00", { font: "120px digital", fill: "#ebefef", align: "center", boundsAlignH: "center", boundsAlignV: "middle" });
+        this.timer2.anchor.set(0.5,0);
+        this.levelGroup[2].add(this.timer2);
 
         //this.levelGroup[2].add(back2);
 
@@ -308,9 +343,19 @@ GameState.prototype = {
 
         this.intro = game.add.group();
 
+
         this.logo_back = game.add.image(0,0,'logo_back');
         this.logo_back.anchor.set(0.5,0);
+        this.logo_back.alpha = 0.8;
         this.intro.add(this.logo_back);
+
+        this.logo = game.add.image(0,600,'logo');
+        this.logo.anchor.set(0.5,0);
+        this.intro.add(this.logo);
+
+        this.intro.alpha =0;
+        this.intro.visible = false;
+
 
 
 
@@ -322,18 +367,98 @@ GameState.prototype = {
         this.windowWin.anchor.set(0.5,0.5);
         this.gameOverGroup.add(this.windowWin);
 
-        this.windowLose = game.add.button(0,0,"window_lose",function () {
 
-            this.initLevel();
-        },this)
+
+        this.windowLose = game.add.image(0,0,'button_box',0);
         this.windowLose.anchor.set(0.5,0.5);
         this.gameOverGroup.add(this.windowLose);
+        this.windowRestart = game.add.button(240,240,"button_box2",function () {
+
+            this.initLevel(false);
+        },this)
+        this.windowRestart.frame = 1;
+        this.windowRestart.anchor.set(0.5,0.5);
+        this.gameOverGroup.add(this.windowRestart);
+
+        this.windowBack = game.add.button(-240,240,"button_box2",function () {
+
+            this.closeLevel();
+        },this)
+        this.windowBack.frame = 0;
+        this.windowBack.anchor.set(0.5,0.5);
+        this.gameOverGroup.add(this.windowBack);
 
         this.gameOverGroup.y = -GAME_HEIGHT/2;
 
-        /*this.logo = game.add.image(0,300,'logo');
-        this.logo.anchor.set(0.5,0);
-        this.intro.add(this.logo);*/
+
+
+        this.overlay = game.add.group();
+
+
+        this.hint = game.add.image(0,GAME_HEIGHT*0.4,'button_box');
+        this.hint.anchor.set(0.5,0.5);
+        this.hint.visible = false;
+        this.overlay.add(this.hint)
+
+
+
+
+
+        this.intro_box = game.add.button(0,0,'intro_box',function () {
+
+
+            if (!this.intro_box_clicked)
+            {
+                this.intro_box_clicked = true;
+
+
+
+
+                let tween2 = this.game.add.tween(this.intro_box);
+                tween2.to({alpha:0,y:GAME_HEIGHT*0.6},
+                    Phaser.Timer.SECOND*1,
+                    Phaser.Easing.Quartic.In
+
+                );
+                tween2.onComplete.add(function () {
+
+                    this.intro_box.visible = false;
+                    this.showButtons();
+
+                }.bind(this));
+                tween2.start();
+            }
+
+        },this);
+
+        this.intro_box.anchor.set(0.5,0.5);
+        this.intro_box.visible = false;
+
+        this.intro_box_clicked = false;
+
+        this.overlay.add(this.intro_box)
+
+
+        let tween = this.game.add.tween(this);
+        tween.to({},
+            Phaser.Timer.SECOND*1
+        );
+        tween.onComplete.add(function () {
+
+            this.showHint(5);
+        }.bind(this))
+        tween.start();
+
+        let tween2 = this.game.add.tween(this);
+        tween2.to({},
+            Phaser.Timer.SECOND*0.5
+        );
+        tween2.onComplete.add(function () {
+
+            this.nextMenuState();
+        }.bind(this))
+        tween2.start();
+        /*
 
         let tween = this.game.add.tween(this.intro);
 
@@ -347,7 +472,7 @@ GameState.prototype = {
             this.intro.visible = false;
             this.nextMenuState();
         }.bind(this));
-        tween.start();
+        tween.start();*/
 
     },
 
@@ -367,24 +492,76 @@ GameState.prototype = {
                 this.changeCamera(0,0,1,1)
 
 
-                for (let i=0;i<3;i++)
-                {
-                    this.button_transition[i].visible = true;
-                    this.button_transition[i].active = true;
+                this.showIntro();
 
-                    let tween = this.game.add.tween(this.button_transition[i]);
-                    tween.to({alpha:1},
-                        Phaser.Timer.SECOND*(3+i*1.5),
-                        Phaser.Easing.Quartic.Out
-                    );
-                    tween.onComplete.add(function () {
-                    }.bind(this));
-                    tween.start();
-                }
                 break;
         }
 
         this.menuState+=1;
+    },
+
+    showIntro :function() {
+
+        this.intro.alpha = 0;
+        this.intro.visible = true;
+        let tween = this.game.add.tween(this.intro);
+        tween.to({alpha:1},
+            Phaser.Timer.SECOND,
+            Phaser.Easing.Cubic.InOut,
+            false,
+            Phaser.Timer.SECOND
+        );
+        tween.onComplete.add(function () {
+            let tween2 = this.game.add.tween(this.intro);
+            tween2.to({alpha:0},
+                Phaser.Timer.SECOND,
+                Phaser.Easing.Cubic.InOut,
+                false,
+                Phaser.Timer.SECOND
+            );
+            tween2.onComplete.add(function () {
+
+                this.intro.visible = false;
+
+
+                this.intro_box.alpha = 0;
+                this.intro_box.visible = true;
+                this.intro_box.y = 0.4*GAME_HEIGHT;
+
+                let tween6 = this.game.add.tween(this.intro_box);
+                tween6.to({alpha:1,y:GAME_HEIGHT*0.5},
+                    Phaser.Timer.SECOND*1,
+                    Phaser.Easing.Quartic.Out
+                );
+                tween6.start();
+
+
+
+            }.bind(this));
+            tween2.start();
+
+
+
+        }.bind(this));
+        tween.start();
+
+    },
+
+    showButtons : function() {
+        for (let i=0;i<3;i++)
+        {
+            this.button_transition[i].visible = true;
+            this.button_transition[i].active = true;
+
+            let tween = this.game.add.tween(this.button_transition[i]);
+            tween.to({alpha:1},
+                Phaser.Timer.SECOND*(3+i*1.5),
+                Phaser.Easing.Quartic.Out
+            );
+            tween.onComplete.add(function () {
+            }.bind(this));
+            tween.start();
+        }
     },
 
     openLevel : function (i) {
@@ -414,13 +591,53 @@ GameState.prototype = {
         tween.start();
 
 
-        this.initLevel();
+        this.initLevel(true);
 
 
     },
 
-    initLevel : function() {
 
+    showHint : function(i) {
+
+
+        this.hint.alpha = 0;
+        this.hint.visible = true;
+        this.hint.y = GAME_HEIGHT*0.4;
+        this.hint.frame = i;
+
+        let tween = this.game.add.tween(this.hint);
+        tween.to({alpha:1,y:GAME_HEIGHT*0.5},
+            Phaser.Timer.SECOND*0.5,
+            Phaser.Easing.Quartic.Out
+        );
+        tween.onComplete.add(function () {
+
+
+
+            let tween2 = this.game.add.tween(this.hint);
+            tween2.to({alpha:0,y:GAME_HEIGHT*0.6},
+                Phaser.Timer.SECOND*0.5,
+                Phaser.Easing.Quartic.In,
+                false,
+                Phaser.Timer.SECOND*0.5
+
+            );
+            tween2.onComplete.add(function () {
+
+                this.hint.visible = false;
+
+            }.bind(this));
+            tween2.start();
+
+        }.bind(this));
+        tween.start();
+
+
+    },
+
+    initLevel : function(firstStart) {
+
+        this.gameplayActive = false;
         this.gameOverGroup.y = - GAME_HEIGHT/2;
 
         this.timeLeft = TIME_PER_LEVEL;
@@ -434,6 +651,10 @@ GameState.prototype = {
                 this.flowerGrowth = [0,0,0];
                 this.flowerSick = [-1,-1,-1];
                 this.flowerSickDelay = [1,2,3];
+
+
+                this.flowerToolTime = [0,0,0];
+                this.flowerToolWorking = [-1,-1,-1];
 
 
                 this.selectedFlowerButton = -1;
@@ -450,9 +671,49 @@ GameState.prototype = {
 
             case 2:
 
+
+                this.selectedTrash = -1;
+
+                this.trashData = [[0,3,6],[1,4,2],[11,5,7],[8,9,10],[-1,-1,-1],[-1,-1,-1]];
+
+
                 break;
         }
 
+
+        if (firstStart)
+        {
+            let tween = this.game.add.tween(this);
+            tween.to({},
+                Phaser.Timer.SECOND*0.5
+            );
+            tween.onComplete.add(function () {
+
+                this.showHint(2+this.currentLevel);
+            }.bind(this))
+            tween.start();
+
+
+            let tween2 = this.game.add.tween(this);
+            tween2.to({},
+                Phaser.Timer.SECOND*2
+            );
+            tween2.onComplete.add(function () {
+
+                this.startLevel();
+            }.bind(this))
+            tween2.start();
+
+
+        }
+        else
+        {
+            this.startLevel();
+        }
+    },
+
+    startLevel : function() {
+        this.gameplayActive = true;
     },
 
     closeLevel : function() {
@@ -527,6 +788,54 @@ GameState.prototype = {
             {
                 this.flowerSickDelay[i] = 1;
                 this.flowerSick[i] = -1;
+
+
+                this.flowerToolTime[i] = 1;
+                this.flowerToolWorking[i] = this.selectedFlowerButton;
+            }
+        }
+
+    },
+
+    clickTrash : function(i) {
+
+
+        if (this.selectedTrash===-1)
+        {
+            this.selectedTrash = i;
+        }
+        else
+        {
+
+            if (this.selectedTrash===i)
+            {
+
+                this.selectedTrash = -1;
+            }
+            else
+            {
+                let t1 = [];
+                let t2 = [];
+
+                for (let j=0;j<3;j++)
+                {
+
+                    if (this.trashData[this.selectedTrash][j]!==-1)
+                        t1.push(this.trashData[this.selectedTrash][j])
+
+                    if (this.trashData[i][j]!==-1)
+                        t2.push(this.trashData[i][j])
+                }
+
+
+                if (t1.length>0 && t2.length<3)
+                {
+
+
+                    this.selectedTrash = -1;
+                }
+
+
             }
         }
 
@@ -547,8 +856,10 @@ GameState.prototype = {
 
 
         this.windowLose.visible = false;
+        this.windowRestart.visible = false;
+        this.windowBack.visible = false;
         this.windowWin.visible = true;
-
+        this.windowWin.frame = this.currentLevel;
 
         this.gameOverGroup.y = -GAME_HEIGHT/2;
         let tween = this.game.add.tween(this.gameOverGroup);
@@ -567,6 +878,8 @@ GameState.prototype = {
 
 
         this.windowLose.visible = true;
+        this.windowRestart.visible = true;
+        this.windowBack.visible = true;
         this.windowWin.visible = false;
 
 
@@ -584,6 +897,12 @@ GameState.prototype = {
     update : function () {
 
 
+        let scaleP = (GAME_WIDTH-1000)/1000
+
+        console.log(scaleP);
+
+
+        this.intro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
 
         //this.back.x = -(1280-GAME_WIDTH)/2;
 
@@ -604,6 +923,7 @@ GameState.prototype = {
 
         this.intro.x = GAME_WIDTH/2;
         this.gameOverGroup.x = GAME_WIDTH/2;
+        this.overlay.x = GAME_WIDTH/2;
 
         if (this.menuState>=0 && this.menuState<=2)
         {
@@ -622,18 +942,17 @@ GameState.prototype = {
 
 
         if (!this.gameOver)
-            switch (this.currentLevel)
-            {
+            switch (this.currentLevel) {
                 case 0:
 
-                    if (this.timeLeft>0)
-                        this.timeLeft -= 1/60*TIME_SCALE;
 
-                    if (this.timeLeft<=0)
-                    {
-                        if (!this.gameOver)
-                        {
-                            if (Math.floor(this.flowerGrowth[0])>=2 && Math.floor(this.flowerGrowth[1])>=2 && Math.floor(this.flowerGrowth[2])>=2)
+                    if (this.gameplayActive)
+                        if (this.timeLeft > 0)
+                            this.timeLeft -= 1 / 60 * TIME_SCALE;
+
+                    if (this.timeLeft <= 0) {
+                        if (!this.gameOver) {
+                            if (Math.floor(this.flowerGrowth[0]) >= 2 && Math.floor(this.flowerGrowth[1]) >= 2 && Math.floor(this.flowerGrowth[2]) >= 2)
                                 this.winLevel();
                             else
                                 this.loseLevel();
@@ -641,74 +960,84 @@ GameState.prototype = {
                         this.timeLeft = 0;
                     }
 
-                    this.timer0.text = "00:"+(Math.floor(this.timeLeft)<10 ? "0" : "") + Math.floor(this.timeLeft);
+                    this.timer0.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
+                    if (this.gameplayActive) {
+                        for (let i = 0; i < 3; i++) {
+                            if (this.flowerToolTime[i] > 0)
+                                this.flowerToolTime[i] -= 1 / 60 * TIME_SCALE
 
-                    for (let i=0;i<3;i++)
-                        if (this.flowerSickDelay[i]>0)
-                            this.flowerSickDelay[i]-=1/60*TIME_SCALE
-
-
-
-                    let sfl = 0;
-
-                    for (let i=0;i<3;i++)
-                        if (this.flowerSick[i] !== -1)
-                            sfl += 1;
-
-
-                    for (let i=0;i<3;i++)
-                        if (this.flowerSick[i] === -1)
-                        {
-
-                            this.flowerGrowth[i] += 1/60/8*TIME_SCALE
-                            if (this.flowerGrowth[i]>2)
-                                this.flowerGrowth[i] = 2;
-
-
-                            if (Math.random()<1/(240*4 / TIME_SCALE) && this.flowerSickDelay[i]<=0 && sfl<2)
-                            {
-
-                                this.flowerSick[i] = Math.floor(Math.random()*3)
-                            }
+                            if (this.flowerSickDelay[i] > 0)
+                                this.flowerSickDelay[i] -= 1 / 60 * TIME_SCALE
                         }
 
 
+                        let sfl = 0;
 
-                    for (let i=0;i<3;i++)
-                    {
-                        switch (this.flowerSick[i])
-                        {
+                        for (let i = 0; i < 3; i++)
+                            if (this.flowerSick[i] !== -1)
+                                sfl += 1;
+
+
+                        for (let i = 0; i < 3; i++)
+                            if (this.flowerSick[i] === -1) {
+
+                                this.flowerGrowth[i] += 1 / 60 / 8 * TIME_SCALE
+                                if (this.flowerGrowth[i] > 2)
+                                    this.flowerGrowth[i] = 2;
+
+
+                                if (Math.random() < 1 / (240 * 3 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl < 2) {
+
+                                    this.flowerSick[i] = Math.floor(Math.random() * 3)
+                                }
+                            }
+
+                    }
+
+
+                    for (let i = 0; i < 3; i++) {
+                        switch (this.flowerSick[i]) {
                             case -1:
-                                this.window[i].frame = 1
                                 this.flower[i].frame = Math.floor(this.flowerGrowth[i])
                                 break;
                             case 0:
-                                this.window[i].frame = 1
-                                this.flower[i].frame = 6+Math.floor(this.flowerGrowth[i])
+                                this.flower[i].frame = 6 + Math.floor(this.flowerGrowth[i])
                                 break;
                             case 1:
-                                this.window[i].frame = 1
-                                this.flower[i].frame = 3+Math.floor(this.flowerGrowth[i])
+                                this.flower[i].frame = 3 + Math.floor(this.flowerGrowth[i])
                                 break;
                             case 2:
-                                this.window[i].frame = 0
-                                this.flower[i].frame = 3+Math.floor(this.flowerGrowth[i])
+
+                                this.flower[i].frame = 3 + Math.floor(this.flowerGrowth[i])
                                 break;
                         }
 
-                        if (this.flowerSick[i]!==-1)
-                        {
-                            this.warn[i].visible = true;
-                            this.warn[i].y = 1200 + Math.sin(-this.timeLeft + i)*30
-                        }
+                        if (this.flowerSick[i] === 2 || (this.flowerToolTime[i] > 0 && this.flowerToolWorking[i] === 2))
+                            this.window[i].frame = 0
                         else
+                            this.window[i].frame = 1
+
+
+                        if (this.flowerSick[i] !== -1) {
+                            this.warn[i].visible = true;
+                            this.warn[i].y = 1200 + Math.sin(-this.timeLeft + i) * 30
+                        } else
                             this.warn[i].visible = false;
 
+                        if (this.flowerToolTime[i] > 0) {
+
+                            this.flowerTool[i].visible = true;
+                            this.flowerTool[i].frame = this.flowerToolWorking[i];
+                            this.flowerTool[i].y = 550 + Math.sin(-this.timeLeft * (this.flowerToolWorking[i] === 2 ? 0 : 8) + i) * 70
+
+                        } else {
+                            this.flowerTool[i].visible = false;
+                        }
 
 
-                        this.buttonFlower[i].frame = i*2 + (i === this.selectedFlowerButton ? 1 : 0)
+                        this.buttonFlower[i].frame = i * 2 + (i === this.selectedFlowerButton ? 1 : 0)
                     }
 
 
@@ -718,17 +1047,14 @@ GameState.prototype = {
                 case 1:
 
 
+                    if (this.gameplayActive)
+                        if (this.timeLeft > 0)
+                            this.timeLeft -= 1 / 60 * TIME_SCALE;
 
+                    if (this.timeLeft <= 0) {
+                        if (!this.gameOver) {
 
-                    if (this.timeLeft>0)
-                        this.timeLeft -= 1/60*TIME_SCALE;
-
-                    if (this.timeLeft<=0)
-                    {
-                        if (!this.gameOver)
-                        {
-
-                            if (this.energy>0)
+                            if (this.energy > 0)
                                 this.winLevel();
                             else
                                 this.loseLevel();
@@ -736,21 +1062,24 @@ GameState.prototype = {
                         this.timeLeft = 0;
                     }
 
-                    this.timer1.text = "00:"+(Math.floor(this.timeLeft)<10 ? "0" : "") + Math.floor(this.timeLeft);
+                    this.timer1.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
-
-                    this.nextTime -= 1/60;
-
-
-                    if (this.nextTime<=0)
+                    if (this.gameplayActive)
                     {
+                        this.nextTime -= 1/60;
 
-                        for (let i=0;i<8;i++)
-                            this.lightOn[i] = Math.random()<0.3
 
-                        this.nextTime = 2;
+                        if (this.nextTime<=0)
+                        {
+
+                            for (let i=0;i<8;i++)
+                                this.lightOn[i] = Math.random()<0.3
+
+                            this.nextTime = 2;
+                        }
                     }
+
 
                     for (let i=0;i<8;i++)
                     {
@@ -793,8 +1122,40 @@ GameState.prototype = {
                 case 2:
 
                     if (this.timeLeft>0)
-                        this.timeLeft -= 1/60;
+                        this.timeLeft -= 1/60*TIME_SCALE;
 
+                    if (this.timeLeft<=0)
+                    {
+                        if (!this.gameOver)
+                        {
+
+                            /*if (this.energy>0)
+                                this.winLevel();
+                            else*/
+                                this.loseLevel();
+                        }
+                        this.timeLeft = 0;
+                    }
+
+                    this.timer2.text = "00:"+(Math.floor(this.timeLeft)<10 ? "0" : "") + Math.floor(this.timeLeft);
+
+
+                    for (let i=0;i<6;i++)
+                    {
+                        this.trashcan[i].x = this.trashcanPosition[i][0]
+                        this.trashcan[i].y = this.trashcanPosition[i][1]
+                        this.trashcan[i].frame = (this.selectedTrash===i) ? 1 : 0;
+
+                        for (let j=0;j<3;j++)
+                            if (this.trashData[i][j]!==-1)
+                            {
+                                let k = this.trashData[i][j];
+
+                                this.trash[k].x = this.trashcanPosition[i][0]
+
+                                this.trash[k].y = this.trashcanPosition[i][1]-170-j*120
+                            }
+                    }
 
                     break;
             }
