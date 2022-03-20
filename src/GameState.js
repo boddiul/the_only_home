@@ -360,7 +360,7 @@ GameState.prototype = {
 
         this.logo_back = game.add.image(0,0,'logo_back');
         this.logo_back.anchor.set(0.5,0);
-        this.logo_back.alpha = 0.8;
+        this.logo_back.alpha = 1;
         this.intro.add(this.logo_back);
 
         this.logo = game.add.image(0,600,'logo');
@@ -520,7 +520,7 @@ GameState.prototype = {
         this.intro.visible = true;
         let tween = this.game.add.tween(this.intro);
         tween.to({alpha:1},
-            Phaser.Timer.SECOND,
+            Phaser.Timer.SECOND*1.5,
             Phaser.Easing.Cubic.InOut,
             false,
             Phaser.Timer.SECOND
@@ -528,7 +528,7 @@ GameState.prototype = {
         tween.onComplete.add(function () {
             let tween2 = this.game.add.tween(this.intro);
             tween2.to({alpha:0},
-                Phaser.Timer.SECOND,
+                Phaser.Timer.SECOND*1.5,
                 Phaser.Easing.Cubic.InOut,
                 false,
                 Phaser.Timer.SECOND*1.5
