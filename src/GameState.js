@@ -8,6 +8,9 @@ GameState = function (game) {
 TIME_PER_LEVEL = 30;
 TIME_SCALE = 1;
 
+TRASHCAN_NUM = 8;
+TRASH_TYPES = 6;
+
 GameState.prototype = {
 
 
@@ -284,11 +287,19 @@ GameState.prototype = {
         this.levelGroup[2] = game.add.group();
 
 
+        let trp = [[-1,-1],[0,-1],[1,-1],[-1,0],[0,0],[1,0],[-0.5,1],[0.5,1]]
         this.trashcanPosition = []
         this.trashcan = [];
-        for (let i=0;i<6;i++)
+
+        this.trashUp = [];
+        this.trashFall = []
+
+
+        for (let i=0;i<TRASHCAN_NUM;i++)
         {
-            this.trashcanPosition.push([((i % 3)-1)*350, 1100 + Math.floor(i/3)*600])
+            //this.trashcanPosition.push([((i % (TRASHCAN_NUM/2))-1.5)*350, 1100 + Math.floor(i/(TRASHCAN_NUM/2))*600])
+
+            this.trashcanPosition.push([trp[i][0]*350, 1450 + trp[i][1]*500])
 
             let tr = this.game.add.button(0,0,'trashcan',function () {
                 this.clickTrash(i);
@@ -298,13 +309,16 @@ GameState.prototype = {
             this.levelGroup[2].add(tr)
 
             this.trashcan.push(tr);
+            this.trashUp.push(0);
+
+            this.trashFall.push([0,0,0])
 
         }
 
 
         this.trash = []
 
-        for (let i=0;i<4;i++)
+        for (let i=0;i<TRASH_TYPES;i++)
         {
             for (let j=0;j<3;j++)
                 {
@@ -509,7 +523,7 @@ GameState.prototype = {
             Phaser.Timer.SECOND,
             Phaser.Easing.Cubic.InOut,
             false,
-            Phaser.Timer.SECOND*3
+            Phaser.Timer.SECOND
         );
         tween.onComplete.add(function () {
             let tween2 = this.game.add.tween(this.intro);
@@ -517,7 +531,7 @@ GameState.prototype = {
                 Phaser.Timer.SECOND,
                 Phaser.Easing.Cubic.InOut,
                 false,
-                Phaser.Timer.SECOND
+                Phaser.Timer.SECOND*1.5
             );
             tween2.onComplete.add(function () {
 
@@ -674,7 +688,7 @@ GameState.prototype = {
 
                 this.selectedTrash = -1;
 
-                this.trashData = [[0,3,6],[1,4,2],[11,5,7],[8,9,10],[-1,-1,-1],[-1,-1,-1]];
+                this.trashData = [[0,3,6],[1,4,2],[11,5,7],[8,9,10],[-1,-1,-1],[15,14,17],[16,12,-1],[13,-1,-1]];
 
 
                 break;
@@ -860,6 +874,7 @@ GameState.prototype = {
                             this.trashData[i][t2.length-1] = this.trashData[this.selectedTrash][k]
                             this.trashData[this.selectedTrash][k] = -1;
 
+                            this.trashFall[i][t2.length-1] = 0.75+0.25*(t2.length-1);
 
                         }
 
@@ -973,9 +988,13 @@ GameState.prototype = {
         }
 
 
-        if (!this.gameOver)
-            switch (this.currentLevel) {
-                case 0:
+        switch (this.currentLevel) {
+            case 0:
+
+                if (!this.gameOver)
+                {
+
+
 
 
                     if (this.gameplayActive)
@@ -1072,12 +1091,19 @@ GameState.prototype = {
                         this.buttonFlower[i].frame = i * 2 + (i === this.selectedFlowerButton ? 1 : 0)
                     }
 
+                }
 
-                    break;
+                break;
+            case 1:
 
 
-                case 1:
+                for (let i = 0; i < 8; i++) {
 
+                    this.lightButton[i].frame = this.lightOn[i] ? 1 : 0;
+                }
+
+
+                if (!this.gameOver) {
 
                     if (this.gameplayActive)
                         if (this.timeLeft > 0)
@@ -1087,9 +1113,18 @@ GameState.prototype = {
                         if (!this.gameOver) {
 
                             if (this.energy > 0)
+                            {
+                                for (let i = 0; i < 8; i++) {
+                                    this.lightOn[i] = false;
+                                }
                                 this.winLevel();
+                            }
                             else
                                 this.loseLevel();
+
+
+
+
                         }
                         this.timeLeft = 0;
                     }
@@ -1097,49 +1132,42 @@ GameState.prototype = {
                     this.timer1.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
-                    if (this.gameplayActive)
-                    {
-                        this.nextTime -= 1/60;
+                    if (this.gameplayActive) {
+                        this.nextTime -= 1 / 60;
 
 
-                        if (this.nextTime<=0)
-                        {
+                        if (this.nextTime <= 0) {
 
-                            for (let i=0;i<8;i++)
-                                this.lightOn[i] = Math.random()<0.3
+                            for (let i = 0; i < 8; i++)
+                                this.lightOn[i] = Math.random() < 0.3
 
                             this.nextTime = 2;
                         }
                     }
 
 
-                    for (let i=0;i<8;i++)
-                    {
-                        if (this.lightOn[i])
-                        {
-                            this.energy -= 0.0003*TIME_SCALE
-                            if (this.room[i].alpha<1-1/5)
-                                this.room[i].alpha+=1/5;
+                    for (let i = 0; i < 8; i++) {
+                        if (this.lightOn[i]) {
+                            this.energy -= 0.0003 * TIME_SCALE
+                            if (this.room[i].alpha < 1 - 1 / 5)
+                                this.room[i].alpha += 1 / 5;
                             else
                                 this.room[i].alpha = 1;
 
-                            this.lightButton[i].frame = 1;
-                        }
-                        else
-                        {
-                            if (this.room[i].alpha>1/5)
-                                this.room[i].alpha-=1/5;
+
+                        } else {
+                            if (this.room[i].alpha > 1 / 5)
+                                this.room[i].alpha -= 1 / 5;
                             else
                                 this.room[i].alpha = 0;
 
 
-                            this.lightButton[i].frame = 0;
+
                         }
 
                     }
 
-                    if (this.energy<0)
-                    {
+                    if (this.energy < 0) {
 
                         this.energy = 0;
 
@@ -1148,60 +1176,88 @@ GameState.prototype = {
                     }
 
                     this.level1_bar.scale.x = this.energy
+                }
 
-                    break;
 
-                case 2:
+                break;
 
-                    if (this.timeLeft>0)
-                        this.timeLeft -= 1/60*TIME_SCALE;
+            case 2:
 
-                    if (this.timeLeft<=0)
-                    {
-                        if (!this.gameOver)
-                        {
 
-                            /*if (this.energy>0)
-                                this.winLevel();
-                            else*/
-                                this.loseLevel();
+
+                for (let i = 0; i < TRASHCAN_NUM; i++) {
+                    this.trashcan[i].x = this.trashcanPosition[i][0]
+                    this.trashcan[i].y = this.trashcanPosition[i][1] - this.trashUp[i] * 40
+                    this.trashcan[i].frame = (this.selectedTrash === i) ? 1 : 0;
+
+
+
+                    if (i === this.selectedTrash) {
+                        if (this.trashUp[i] < 1)
+                            this.trashUp[i] += 1 / 5
+                        else
+                            this.trashUp[i] = 1;
+                    } else {
+                        if (this.trashUp[i] > 0)
+                            this.trashUp[i] -= 1 / 5
+                        else
+                            this.trashUp[i] = 0;
+                    }
+
+
+
+                    for (let j = 0; j < 3; j++)
+                        if (this.trashData[i][j] !== -1) {
+                            let k = this.trashData[i][j];
+
+                            this.trash[k].x = this.trashcanPosition[i][0]
+
+                            this.trash[k].y = this.trashcanPosition[i][1] - this.trashUp[i] * 40 - 170 - j * 120 - this.trashFall[i][j] * 60
+
+                            if (this.trashFall[i][j] > 0)
+                                this.trashFall[i][j] -= 1 / 10
+                            else
+                                this.trashFall[i][j] = 0;
+
+                        }
+
+
+                }
+
+
+                if (!this.gameOver) {
+
+                    if (this.timeLeft > 0)
+                        this.timeLeft -= 1 / 60 * TIME_SCALE;
+
+                    if (this.timeLeft <= 0) {
+                        if (!this.gameOver) {
+                            this.loseLevel();
                         }
                         this.timeLeft = 0;
                     }
 
-                    this.timer2.text = "00:"+(Math.floor(this.timeLeft)<10 ? "0" : "") + Math.floor(this.timeLeft);
+                    this.timer2.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
                     let winState = true;
-                    for (let i=0;i<6;i++)
-                    {
-                        this.trashcan[i].x = this.trashcanPosition[i][0]
-                        this.trashcan[i].y = this.trashcanPosition[i][1]
-                        this.trashcan[i].frame = (this.selectedTrash===i) ? 1 : 0;
+                    for (let i = 0; i < TRASHCAN_NUM; i++) {
 
-                        for (let j=0;j<3;j++)
-                            if (this.trashData[i][j]!==-1)
-                            {
+
+
+                        for (let j = 0; j < 3; j++)
+                            if (this.trashData[i][j] !== -1) {
                                 let k = this.trashData[i][j];
 
-                                this.trash[k].x = this.trashcanPosition[i][0]
-
-                                this.trash[k].y = this.trashcanPosition[i][1]-170-j*120
-
-
-                                if (this.trashData[i][0]!==-1)
+                                if (this.trashData[i][0] !== -1)
 
                                     if (this.trash[k].frame !== this.trash[this.trashData[i][0]].frame)
                                         winState = false;
-                            }
-                            else
-                            {
+                            } else {
 
-                                if (this.trashData[i][0]!==-1)
+                                if (this.trashData[i][0] !== -1)
                                     winState = false;
                             }
-
-
 
 
                     }
@@ -1211,7 +1267,10 @@ GameState.prototype = {
                         if (winState)
                             this.winLevel();
 
-                    break;
+                }
+
+
+                break;
             }
 
 

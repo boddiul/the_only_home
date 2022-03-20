@@ -80,7 +80,7 @@ PreloadState.prototype = {
         game.load.image('pot_zone', 'assets/level0/pot_zone.png');
 
         game.load.image('back_gradient2', 'assets/level2/back_gradient.png');
-        game.load.spritesheet('items', 'assets/level2/items.png',487/4,122);
+        game.load.spritesheet('items', 'assets/level2/items.png',731/6,122);
         game.load.spritesheet('trashcan', 'assets/level2/trashcan.png',556/2,470);
         game.load.image('timer2', 'assets/level2/timer.png');
 
