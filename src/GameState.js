@@ -120,6 +120,13 @@ GameState.prototype = {
 
                     this.sndNote[this.note].play();
                     this.note+=1;
+
+                    if (!this.musicPlaying)
+                    {
+                        this.sndMusic.play();
+                        this.musicPlaying = true;
+                    }
+
                 }
 
             }.bind(this)));
@@ -574,6 +581,7 @@ GameState.prototype = {
         this.overlay.add(this.buttonSound);
 
         this.note = 0;
+        this.musicPlaying = false;
     },
 
     nextMenuState : function() {
@@ -613,7 +621,6 @@ GameState.prototype = {
         );
         tween.onComplete.add(function () {
 
-            this.sndMusic.play();
 
             let tween2 = this.game.add.tween(this.intro);
             tween2.to({alpha:0},
