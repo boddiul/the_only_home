@@ -15,6 +15,15 @@ PreloadState.prototype = {
         //this.loadBar = this.game.add.image(0, GAME_HEIGHT/2, "load_bar");
         //this.loadBar.scale.setTo(0,1);
 
+        this.loadBack = this.game.add.image(GAME_WIDTH/2,GAME_HEIGHT/2,"logo_back");
+        this.loadBack.anchor.set(0.5,0.5);
+        this.loadText = this.game.add.text(GAME_WIDTH/2,GAME_HEIGHT*0.7,"0%", { font: "100px", fill: "#ffffff", align: "center", boundsAlignH: "center", boundsAlignV: "middle" });
+        this.loadText.anchor.set(0.5,0.5);
+
+
+        this.loadEarth = this.game.add.image(GAME_WIDTH/2,GAME_HEIGHT/2,"earth_loading");
+        this.loadEarth.anchor.set(0.5,0.5);
+        this.loadEarth.scale.set(3,3);
         this.game.scale.setUserScale(1, 1);
 
         this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -29,7 +38,13 @@ PreloadState.prototype = {
 
         game.load.image('back', 'assets/back.jpg');
         game.load.image('house', 'assets/house.png');
-        game.load.image('transition_pos', 'assets/transition_pos.png');
+        //game.load.image('transition_pos', 'assets/transition_pos.png');
+
+
+        game.load.spritesheet('transition0', 'assets/transition0.png',712/2,359);
+        game.load.spritesheet('transition1', 'assets/transition1.png',1318/2,990);
+        game.load.spritesheet('transition2', 'assets/transition2.png',896/2,726);
+
         //game.load.image('stuff_pos', 'assets/stuff_pos.png');
 
 
@@ -70,9 +85,11 @@ PreloadState.prototype = {
 
 
 
+
+        game.load.image('tomb', 'assets/level0/tomb.png');
         game.load.image('background0', 'assets/level0/background.png');
         game.load.spritesheet('button_flower', 'assets/level0/button_flower.png',600/2,900/3);
-        game.load.spritesheet('flower', 'assets/level0/flower.png',994/3,1369/3);
+        game.load.spritesheet('flower', 'assets/level0/flower.png',1028/3,1836/4);
         game.load.spritesheet('tool', 'assets/level0/tool.png',1200/3,381);
         game.load.image('warn', 'assets/level0/warn.png');
         game.load.spritesheet('window', 'assets/level0/window.png',447/2,244);
@@ -85,17 +102,33 @@ PreloadState.prototype = {
         game.load.image('timer2', 'assets/level2/timer.png');
 
 
-
         game.load.image('logo', 'assets/logo.png');
-        game.load.image('logo_back', 'assets/logo_back.png');
 
         game.load.image('intro_box', 'assets/intro_box.png');
+        game.load.image('outro_box', 'assets/outro_box.png');
 
 
         game.load.spritesheet('window_win', 'assets/window_win.png',3365/3,1312);
         game.load.spritesheet('button_box', 'assets/button_box.png',1082,2023/6);
         game.load.spritesheet('button_box2', 'assets/button_box2.png',529,682/2);
 
+
+
+        game.load.spritesheet('button_sound','assets/button_sound.png',268/2,134);
+
+        game.load.audiosprite('antibugs','assets/audio/antibugs.mp3');
+        game.load.audiosprite('bugs','assets/audio/bugs.mp3');
+        game.load.audiosprite('dry','assets/audio/dry.mp3');
+        game.load.audiosprite('el','assets/audio/el.mp3');
+        game.load.audiosprite('music','assets/audio/music.mp3');
+        game.load.audiosprite('switch','assets/audio/switch.mp3');
+        game.load.audiosprite('tap','assets/audio/tap.mp3');
+        game.load.audiosprite('trash','assets/audio/trash.mp3');
+        game.load.audiosprite('water','assets/audio/water.mp3');
+        game.load.audiosprite('win','assets/audio/win.mp3');
+
+        for (let i=1;i<=21;i++)
+            game.load.audiosprite('note'+(i),'assets/audio/'+i+'.mp3');
     }
     ,
 
@@ -106,6 +139,20 @@ PreloadState.prototype = {
             this.game.load.onFileComplete.removeAll();
 
         }*/
+
+        this.loadBack.x = GAME_WIDTH/2;
+        this.loadBack.y = GAME_HEIGHT/2;
+
+        this.loadText.text = (progress) + '%'
+        this.loadText.x = GAME_WIDTH/2;
+
+
+        this.loadEarth.x = GAME_WIDTH/2;
+        this.loadEarth.y = GAME_HEIGHT/2;
+
+
+        this.loadEarth.angle+=1;
+
     },
 
     create : function () {

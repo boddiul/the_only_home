@@ -5,7 +5,7 @@ GameState = function (game) {
 };
 
 
-TIME_PER_LEVEL = 30;
+TIME_PER_LEVEL = [59,59,30];
 TIME_SCALE = 1;
 
 TRASHCAN_NUM = 8;
@@ -41,9 +41,30 @@ GameState.prototype = {
         this.house.anchor.set(0.5,0);
         this.houseGroup.add(this.house);
 
-        this.transitionPos = game.add.image(0,0,'transition_pos')
+        /*this.transitionPos = game.add.image(0,0,'transition_pos')
         this.transitionPos.anchor.set(0.5,0);
-        this.houseGroup.add(this.transitionPos);
+        this.houseGroup.add(this.transitionPos);*/
+
+
+        this.transition0 = game.add.image(-5,440,'transition0')
+        this.transition0.scale.set(0.7,0.7);
+        this.transition0.frame = 1;
+        this.houseGroup.add(this.transition0);
+        this.transition1 = game.add.image(-332,332,'transition1')
+        this.transition1.scale.set(1.01,1.01);
+        this.houseGroup.add(this.transition1);
+        this.transition1_el = game.add.image(-332,332,'transition1')
+        this.transition1_el.scale.set(1.01,1.01);
+        this.transition1_el.frame = 1;
+        this.houseGroup.add(this.transition1_el);
+
+        this.el = 0;
+
+
+        this.transition2 = game.add.image(213,976,'transition2')
+        this.transition2.frame = 1;
+        this.transition2.scale.set(0.72,0.72);
+        this.houseGroup.add(this.transition2);
 
 
         /*this.stuffPos = game.add.image(0,0,'stuff_pos');
@@ -96,6 +117,9 @@ GameState.prototype = {
                         this.stuff[i].visible = false
                     }.bind(this));
                     tween.start();
+
+                    this.sndNote[this.note].play();
+                    this.note+=1;
                 }
 
             }.bind(this)));
@@ -117,7 +141,11 @@ GameState.prototype = {
             this.button_transition.push(game.add.button(b_pos[i][0],b_pos[i][1],'button_transition',function () {
 
                 if (!this.levelOpened)
+                {
+
                     this.openLevel(i)
+                    this.sndTap.play();
+                }
             },this,3+i,i,3+i,i))
             this.button_transition[i].scale.set(1.5,1.5)
             this.button_transition[i].visible = false;
@@ -153,7 +181,10 @@ GameState.prototype = {
 
 
         this.window = []
-        this.flower = []
+        this.flower = [];
+        this.tomb = [];
+        this.flowerX = [];
+
         this.tool = []
         this.buttonFlower = [];
 
@@ -167,14 +198,20 @@ GameState.prototype = {
             w.anchor.set(0.5, 0.5)
             this.window.push(w);
             this.levelGroup[0].add(w);
-
-            let f = game.add.button(xx,730,'flower', function () {
+            let f = game.add.button(xx,721,'flower', function () {
 
                 this.clickFlower(i);
             },this);
             f.anchor.set(0.5, 0.5)
             this.flower.push(f);
+            this.flowerX.push(xx);
             this.levelGroup[0].add(f);
+
+
+            let tmb = game.add.image(xx,870,'tomb');
+            tmb.anchor.set(0.5, 0.5)
+            this.tomb.push(tmb);
+            this.levelGroup[0].add(tmb);
 
 
             let pz = game.add.button(xx,1100,'pot_zone', function () {
@@ -246,6 +283,9 @@ GameState.prototype = {
             this.levelGroup[1].add(this.room[i]);
 
             this.lightButton.push(game.add.button(coords2[i][0]*225,1400+coords2[i][1]*330,'button_light',function () {
+
+
+                this.sndSwitch.play();
 
                 this.lightOn[i] = !this.lightOn[i];
             },this));
@@ -373,14 +413,16 @@ GameState.prototype = {
 
 
 
+        this.canClick = false;
+
         this.gameOverGroup = game.add.group();
         this.windowWin = game.add.button(0,0,"window_win",function () {
 
-            this.closeLevel();
+            if (this.canClick)
+                this.closeLevel();
         },this)
         this.windowWin.anchor.set(0.5,0.5);
         this.gameOverGroup.add(this.windowWin);
-
 
 
         this.windowLose = game.add.image(0,0,'button_box',0);
@@ -388,7 +430,8 @@ GameState.prototype = {
         this.gameOverGroup.add(this.windowLose);
         this.windowRestart = game.add.button(240,240,"button_box2",function () {
 
-            this.initLevel(false);
+            if (this.canClick)
+                this.initLevel(false);
         },this)
         this.windowRestart.frame = 1;
         this.windowRestart.anchor.set(0.5,0.5);
@@ -396,7 +439,8 @@ GameState.prototype = {
 
         this.windowBack = game.add.button(-240,240,"button_box2",function () {
 
-            this.closeLevel();
+            if (this.canClick)
+                this.closeLevel();
         },this)
         this.windowBack.frame = 0;
         this.windowBack.anchor.set(0.5,0.5);
@@ -445,12 +489,21 @@ GameState.prototype = {
 
         },this);
 
+
         this.intro_box.anchor.set(0.5,0.5);
         this.intro_box.visible = false;
 
         this.intro_box_clicked = false;
 
         this.overlay.add(this.intro_box)
+
+
+
+        this.outro_box = game.add.image(0,-GAME_HEIGHT/2,'outro_box');
+
+        this.outro_box.anchor.set(0.5,0.5);
+        this.overlay.add(this.outro_box)
+
 
 
         let tween = this.game.add.tween(this);
@@ -488,6 +541,39 @@ GameState.prototype = {
         }.bind(this));
         tween.start();*/
 
+        this.levelPass = [0,0,0];
+
+        this.outroDone = false;
+
+
+        this.sndAntiBugs = this.game.add.audio("antibugs",0.3,false);
+        this.sndBugs = this.game.add.audio("bugs",0.3,false);
+        this.sndDry = this.game.add.audio("dry",0.3,false);
+        this.sndEl = this.game.add.audio("el",0.3,false);
+        this.sndMusic = this.game.add.audio("music",0.4,true);
+        this.sndNight = this.game.add.audio("night",0.3,false);
+        this.sndSwitch = this.game.add.audio("switch",0.3,false);
+        this.sndTap = this.game.add.audio("tap",0.3,false);
+        this.sndTrash = this.game.add.audio("trash",0.3,false);
+        this.sndWater = this.game.add.audio("water",0.3,false);
+        this.sndWin = this.game.add.audio("win",0.3,false);
+
+        this.sndNote = [];
+
+        for (let i=1;i<=21;i++)
+        {
+            this.sndNote.push(this.game.add.audio('note'+(i),0.3,false))
+        }
+
+
+        this.buttonSound = this.game.add.button(0, 0, "button_sound",function() {
+
+            this.game.sound.mute = !this.game.sound.mute
+        },this);
+        this.buttonSound.anchor.set(0.5,0.5);
+        this.overlay.add(this.buttonSound);
+
+        this.note = 0;
     },
 
     nextMenuState : function() {
@@ -526,6 +612,9 @@ GameState.prototype = {
             Phaser.Timer.SECOND
         );
         tween.onComplete.add(function () {
+
+            this.sndMusic.play();
+
             let tween2 = this.game.add.tween(this.intro);
             tween2.to({alpha:0},
                 Phaser.Timer.SECOND*1.5,
@@ -558,6 +647,46 @@ GameState.prototype = {
 
         }.bind(this));
         tween.start();
+
+    },
+
+
+    showOutro : function() {
+
+
+        this.outroDone = true;
+
+
+        let tween = this.game.add.tween(this.outro_box);
+        tween.to({y:GAME_HEIGHT/2},
+            Phaser.Timer.SECOND*0.75,
+            Phaser.Easing.Cubic.InOut,
+            false,
+            Phaser.Timer.SECOND*1.5
+        );
+
+        tween.onComplete.add(function () {
+
+            let tween2 = this.game.add.tween(this.outro_box);
+            tween2.to({y:-GAME_HEIGHT/2},
+                Phaser.Timer.SECOND*0.75,
+                Phaser.Easing.Cubic.InOut,
+                false,
+                Phaser.Timer.SECOND*6.5
+            );
+
+            tween2.onComplete.add(function () {
+
+
+
+            }.bind(this));
+            tween2.start();
+
+
+
+        }.bind(this));
+        tween.start();
+
 
     },
 
@@ -654,7 +783,7 @@ GameState.prototype = {
         this.gameplayActive = false;
         this.gameOverGroup.y = - GAME_HEIGHT/2;
 
-        this.timeLeft = TIME_PER_LEVEL;
+        this.timeLeft = TIME_PER_LEVEL[this.currentLevel];
         this.gameOver = false;
 
         this.gameWin = false;
@@ -665,10 +794,13 @@ GameState.prototype = {
                 this.flowerGrowth = [0,0,0];
                 this.flowerSick = [-1,-1,-1];
                 this.flowerSickDelay = [1,2,3];
-
+                this.flowerFrame = [0,0,0]
 
                 this.flowerToolTime = [0,0,0];
                 this.flowerToolWorking = [-1,-1,-1];
+
+
+                this.flowerDeath = [0,0,0];
 
 
                 this.selectedFlowerButton = -1;
@@ -800,12 +932,27 @@ GameState.prototype = {
         {
             if (this.flowerSick[i] === this.selectedFlowerButton)
             {
+
+                if (this.selectedFlowerButton===0)
+                    this.sndAntiBugs.play();
+
+
+                if (this.selectedFlowerButton===1)
+                    this.sndWater.play();
+
+
+                if (this.selectedFlowerButton===2)
+                    this.sndTap.play();
+
                 this.flowerSickDelay[i] = 1;
                 this.flowerSick[i] = -1;
 
 
                 this.flowerToolTime[i] = 1;
                 this.flowerToolWorking[i] = this.selectedFlowerButton;
+
+
+                this.selectedFlowerButton = -1;
             }
         }
 
@@ -865,8 +1012,9 @@ GameState.prototype = {
                     while (p1>0 && (this.trash[t1[p1-1]].frame===movingType))
                         p1-=1;
 
+                    this.sndTrash.play();
 
-                    for (let k=p1;k<=p2;k++)
+                    for (let k=p2;k>=p1;k--)
                         if (t2.length<3)
                         {
                             t2.push(0);
@@ -912,10 +1060,27 @@ GameState.prototype = {
         this.gameOverGroup.y = -GAME_HEIGHT/2;
         let tween = this.game.add.tween(this.gameOverGroup);
         tween.to({y:GAME_HEIGHT/2},
-            Phaser.Timer.SECOND,
+            Phaser.Timer.SECOND*0.75,
             Phaser.Easing.Quartic.Out
         );
+        tween.onComplete.add(function () {
+            this.canClick = true;
+        },this)
         tween.start();
+        this.canClick = false;
+
+
+        this.levelPass[this.currentLevel] = 1;
+
+
+        if (this.levelPass[0]>0 && this.levelPass[1]>0 && this.levelPass[2]>0)
+        {
+            if (!this.outroDone)
+                this.showOutro();
+        }
+
+        this.sndWin.play();
+
     },
 
 
@@ -934,22 +1099,31 @@ GameState.prototype = {
         this.gameOverGroup.y = -GAME_HEIGHT/2;
         let tween = this.game.add.tween(this.gameOverGroup);
         tween.to({y:GAME_HEIGHT/2},
-            Phaser.Timer.SECOND,
+            Phaser.Timer.SECOND*0.75,
             Phaser.Easing.Quartic.Out
         );
+        tween.onComplete.add(function () {
+            this.canClick = true;
+        },this)
         tween.start();
+        this.canClick = false;
+
+
+
 
     },
 
 
     update : function () {
 
-
+        this.buttonSound.y = 100;
+        this.buttonSound.x = -GAME_WIDTH/2+100;
+        this.buttonSound.frame = this.game.sound.mute ? 0: 1;
         let scaleP = (GAME_WIDTH-1000)/1000
 
 
-
         this.intro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
+        this.outro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
 
         //this.back.x = -(1280-GAME_WIDTH)/2;
 
@@ -964,7 +1138,11 @@ GameState.prototype = {
 
 
         for (let i=0; i<3; i++)
+        {
             this.levelGroup[i].x = GAME_WIDTH/2;
+
+            this.button_transition[i].alpha = this.levelPass[i]>0 ? 0.5 : 1;
+        }
 
 
 
@@ -988,13 +1166,43 @@ GameState.prototype = {
         }
 
 
-        switch (this.currentLevel) {
+
+        this.transition0.frame = this.levelPass[0]>0 ? 0 :1;
+
+
+        if (this.levelPass[1]===0 && this.menuState>2)
+        {
+            this.transition1_el.visible = true;
+            this.transition1.visible = true;
+
+            this.el+=(Math.random()-0.5)/5.0
+            if (this.el>1)
+                this.el = 1;
+
+            if (this.el<0)
+                this.el = 0;
+
+            //this.transition1.alpha = (1-this.el)
+            this.transition1_el.alpha = this.el;
+        }
+        else
+        {
+            this.transition1.alpha = 1;
+            this.transition1.visible = true;
+
+
+            this.transition1_el.alpha = 0;
+            this.transition1_el.visible = false;
+        }
+
+        this.transition2.frame = this.levelPass[2]>0 ? 0 :1
+
+
+            switch (this.currentLevel) {
             case 0:
 
                 if (!this.gameOver)
                 {
-
-
 
 
                     if (this.gameplayActive)
@@ -1002,25 +1210,38 @@ GameState.prototype = {
                             this.timeLeft -= 1 / 60 * TIME_SCALE;
 
                     if (this.timeLeft <= 0) {
-                        if (!this.gameOver) {
+                        /*if (!this.gameOver) {
                             if (Math.floor(this.flowerGrowth[0]) >= 2 && Math.floor(this.flowerGrowth[1]) >= 2 && Math.floor(this.flowerGrowth[2]) >= 2)
                                 this.winLevel();
                             else
                                 this.loseLevel();
-                        }
+                        }*/
+                        this.winLevel();
+
+                        this.flowerSick = [-1,-1,-1];
+
                         this.timeLeft = 0;
                     }
-
-                    this.timer0.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
 
 
                     if (this.gameplayActive) {
                         for (let i = 0; i < 3; i++) {
                             if (this.flowerToolTime[i] > 0)
-                                this.flowerToolTime[i] -= 1 / 60 * TIME_SCALE
+                                this.flowerToolTime[i] -= 1 / 60 * TIME_SCALE;
 
                             if (this.flowerSickDelay[i] > 0)
-                                this.flowerSickDelay[i] -= 1 / 60 * TIME_SCALE
+                                this.flowerSickDelay[i] -= 1 / 60 * TIME_SCALE;
+
+
+                            if (this.flowerDeath[i]>=0 && this.flowerSick[i]!==-1)
+                            {
+                                this.flowerDeath[i] -= 1 / 60 * TIME_SCALE;
+
+                                if (this.flowerDeath[i]<0)
+                                {
+                                    this.loseLevel();
+                                }
+                            }
                         }
 
 
@@ -1032,75 +1253,118 @@ GameState.prototype = {
 
 
                         for (let i = 0; i < 3; i++)
+                        {
+
+                            this.flowerGrowth[i] += 0.5 / 60 / 8 * TIME_SCALE*(i/3+0.6)
+                            if (this.flowerGrowth[i] > 2)
+                                this.flowerGrowth[i] = 2;
+
+
+
                             if (this.flowerSick[i] === -1) {
 
-                                this.flowerGrowth[i] += 1 / 60 / 8 * TIME_SCALE
-                                if (this.flowerGrowth[i] > 2)
-                                    this.flowerGrowth[i] = 2;
 
-
-                                if (Math.random() < 1 / (240 * 3 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl < 2) {
+                                if (Math.random() < 1 / (240*2 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl < 2) {
 
                                     this.flowerSick[i] = Math.floor(Math.random() * 3)
+
+                                    if (this.flowerSick[i]===0)
+                                        this.sndBugs.play();
+
+                                    if (this.flowerSick[i]===1)
+                                        this.sndDry.play();
+
+                                    if (this.flowerSick[i]===2)
+                                        this.sndNight.play();
+
+                                    this.flowerDeath[i] = 5.5;
+
                                 }
                             }
 
+                        }
+
                     }
 
 
-                    for (let i = 0; i < 3; i++) {
-                        switch (this.flowerSick[i]) {
-                            case -1:
-                                this.flower[i].frame = Math.floor(this.flowerGrowth[i])
-                                break;
-                            case 0:
-                                this.flower[i].frame = 6 + Math.floor(this.flowerGrowth[i])
-                                break;
-                            case 1:
-                                this.flower[i].frame = 3 + Math.floor(this.flowerGrowth[i])
-                                break;
-                            case 2:
 
-                                this.flower[i].frame = 3 + Math.floor(this.flowerGrowth[i])
-                                break;
-                        }
-
-                        if (this.flowerSick[i] === 2 || (this.flowerToolTime[i] > 0 && this.flowerToolWorking[i] === 2))
-                            this.window[i].frame = 0
-                        else
-                            this.window[i].frame = 1
-
-
-                        if (this.flowerSick[i] !== -1) {
-                            this.warn[i].visible = true;
-                            this.warn[i].y = 1200 + Math.sin(-this.timeLeft + i) * 30
-                        } else
-                            this.warn[i].visible = false;
-
-                        if (this.flowerToolTime[i] > 0) {
-
-                            this.flowerTool[i].visible = true;
-                            this.flowerTool[i].frame = this.flowerToolWorking[i];
-                            this.flowerTool[i].y = 550 + Math.sin(-this.timeLeft * (this.flowerToolWorking[i] === 2 ? 0 : 8) + i) * 70
-
-                        } else {
-                            this.flowerTool[i].visible = false;
-                        }
-
-
-                        this.buttonFlower[i].frame = i * 2 + (i === this.selectedFlowerButton ? 1 : 0)
-                    }
 
                 }
+
+
+                this.timer0.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
+
+                for (let i = 0; i < 3; i++) {
+
+                    if (this.flowerDeath[i]<0)
+                    {
+                        this.flower[i].visible = false;
+                        this.tomb[i].visible = true;
+                    }
+                    else
+                    {
+                        this.flower[i].visible = true;
+                        this.tomb[i].visible = false;
+                    }
+
+                    if (this.flowerSick[i]===-1)
+                        this.flowerFrame[i] = Math.floor(this.flowerGrowth[i])
+
+                    switch (this.flowerSick[i]) {
+                        case -1:
+                            this.flower[i].frame = this.flowerFrame[i]
+                            break;
+                        case 0:
+                            this.flower[i].frame = 6 + this.flowerFrame[i]
+                            break;
+                        case 1:
+                            this.flower[i].frame = 3 + this.flowerFrame[i]
+                            break;
+                        case 2:
+
+                            this.flower[i].frame = 9 + this.flowerFrame[i]
+                            break;
+                    }
+
+                    if (this.flowerSick[i]===1 && this.flowerFrame[i]===2)
+                        this.flower[i].x = this.flowerX[i]+60;
+                    else
+                        this.flower[i].x = this.flowerX[i];
+
+
+
+                    if (this.flowerSick[i] === 2 || (this.flowerToolTime[i] > 0 && this.flowerToolWorking[i] === 2))
+                        this.window[i].frame = 0
+                    else
+                        this.window[i].frame = 1
+
+
+                    if (this.flowerSick[i] !== -1) {
+                        this.warn[i].visible = Math.sin(100/(this.flowerDeath[i]+1.2))>0;
+                        this.warn[i].y = 1200 + Math.sin(-this.timeLeft + i) * 30
+                    } else
+                        this.warn[i].visible = false;
+
+                    if (this.flowerToolTime[i] > 0) {
+
+                        this.flowerTool[i].visible = true;
+                        this.flowerTool[i].frame = this.flowerToolWorking[i];
+                        this.flowerTool[i].y = 550 + Math.sin(-this.timeLeft * (this.flowerToolWorking[i] === 2 ? 0 : 8) + i) * 70
+
+                    } else {
+                        this.flowerTool[i].visible = false;
+                    }
+
+
+                    this.buttonFlower[i].frame = i * 2 + (i === this.selectedFlowerButton ? 1 : 0)
+                }
+
+
 
                 break;
             case 1:
 
 
-                for (let i = 0; i < 8; i++) {
-
-                    this.lightButton[i].frame = this.lightOn[i] ? 1 : 0;
-                }
 
 
                 if (!this.gameOver) {
@@ -1129,8 +1393,6 @@ GameState.prototype = {
                         this.timeLeft = 0;
                     }
 
-                    this.timer1.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
-
 
                     if (this.gameplayActive) {
                         this.nextTime -= 1 / 60;
@@ -1138,34 +1400,37 @@ GameState.prototype = {
 
                         if (this.nextTime <= 0) {
 
+
+
+                            let changeWas = false;
                             for (let i = 0; i < 8; i++)
-                                this.lightOn[i] = Math.random() < 0.3
+                            {
+                                if (Math.random() < 0.3)
+                                {
+
+                                    this.lightOn[i] = true;
+                                    changeWas = true;
+                                }
+
+                            }
+
+
+                            if (changeWas)
+                            {
+
+                                this.sndEl.play();
+                                this.sndEl._sound.playbackRate.value = 0.8+Math.random()*0.4
+
+                            }
+
 
                             this.nextTime = 2;
                         }
                     }
+                    for (let i = 0; i < 8; i++)
+                        if (this.lightOn[i])
+                            this.energy -= 0.0003 * TIME_SCALE * 0.5
 
-
-                    for (let i = 0; i < 8; i++) {
-                        if (this.lightOn[i]) {
-                            this.energy -= 0.0003 * TIME_SCALE
-                            if (this.room[i].alpha < 1 - 1 / 5)
-                                this.room[i].alpha += 1 / 5;
-                            else
-                                this.room[i].alpha = 1;
-
-
-                        } else {
-                            if (this.room[i].alpha > 1 / 5)
-                                this.room[i].alpha -= 1 / 5;
-                            else
-                                this.room[i].alpha = 0;
-
-
-
-                        }
-
-                    }
 
                     if (this.energy < 0) {
 
@@ -1178,6 +1443,33 @@ GameState.prototype = {
                     this.level1_bar.scale.x = this.energy
                 }
 
+                for (let i = 0; i < 8; i++) {
+
+                    this.lightButton[i].frame = this.lightOn[i] ? 1 : 0;
+                }
+
+                this.timer1.text = "00:" + (Math.floor(this.timeLeft) < 10 ? "0" : "") + Math.floor(this.timeLeft);
+
+                for (let i = 0; i < 8; i++) {
+                    if (this.lightOn[i]) {
+
+                        if (this.room[i].alpha < 1 - 1 / 5)
+                            this.room[i].alpha += 1 / 5;
+                        else
+                            this.room[i].alpha = 1;
+
+
+                    } else {
+                        if (this.room[i].alpha > 1 / 5)
+                            this.room[i].alpha -= 1 / 5;
+                        else
+                            this.room[i].alpha = 0;
+
+
+
+                    }
+
+                }
 
                 break;
 
