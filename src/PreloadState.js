@@ -83,6 +83,9 @@ PreloadState.prototype = {
         for (let i=0;i<8;i++)
             game.load.image('room'+i, 'assets/level1/room'+i+'.png');
 
+        game.load.image('tutorial1', 'assets/level1/tutorial.png');
+        game.load.image('tutorial0', 'assets/level0/tutorial.png');
+
 
 
 
@@ -115,6 +118,7 @@ PreloadState.prototype = {
 
 
         game.load.spritesheet('button_sound','assets/button_sound.png',268/2,134);
+        game.load.image('button_info', 'assets/button_info.png');
 
         game.load.audiosprite('antibugs','assets/audio/antibugs.mp3');
         game.load.audiosprite('bugs','assets/audio/bugs.mp3');

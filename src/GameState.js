@@ -578,10 +578,43 @@ GameState.prototype = {
             this.game.sound.mute = !this.game.sound.mute
         },this);
         this.buttonSound.anchor.set(0.5,0.5);
+
+        this.buttonInfo = this.game.add.button(0,-100,"button_info",function () {
+
+
+            this.tutorialVisible = true;
+        },this)
+        this.buttonInfo.anchor.set(0.5,0.5);
+
         this.overlay.add(this.buttonSound);
+        this.overlay.add(this.buttonInfo);
 
         this.note = 0;
         this.musicPlaying = false;
+
+
+        this.tutorialOverlay = this.game.add.group();
+        this.tutorial = [];
+
+        this.tutorialVisible = false;
+
+        for (let i=0;i<2;i++)
+        {
+            this.tutorial.push(this.game.add.button(0,0,'tutorial'+i,function () {
+
+                this.tutorialVisible = false;
+
+            },this));
+
+            this.tutorial[i].anchor.set(0.5,0.5);
+            this.tutorial[i].scale.set(1.5,1.5);
+            this.tutorialOverlay.add(this.tutorial[i]);
+
+        }
+        this.tutorialOverlay.y = -GAME_HEIGHT/2;
+
+        this.tutorial.push(null);
+
     },
 
     nextMenuState : function() {
@@ -836,6 +869,7 @@ GameState.prototype = {
 
         if (firstStart)
         {
+
             let tween = this.game.add.tween(this);
             tween.to({},
                 Phaser.Timer.SECOND*0.5
@@ -849,11 +883,12 @@ GameState.prototype = {
 
             let tween2 = this.game.add.tween(this);
             tween2.to({},
-                Phaser.Timer.SECOND*2
+                Phaser.Timer.SECOND*2.5
             );
             tween2.onComplete.add(function () {
 
                 this.startLevel();
+                this.tutorialVisible = true;
             }.bind(this))
             tween2.start();
 
@@ -1126,6 +1161,65 @@ GameState.prototype = {
         this.buttonSound.y = 100;
         this.buttonSound.x = -GAME_WIDTH/2+100;
         this.buttonSound.frame = this.game.sound.mute ? 0: 1;
+
+
+        if (this.currentLevel!==-1 && this.currentLevel!==2)
+        {
+            if (this.buttonInfo.y<100)
+                this.buttonInfo.y+=10;
+            else
+                this.buttonInfo.y = 100;
+        }
+        else
+        {
+
+            if (this.buttonInfo.y>-100)
+                this.buttonInfo.y-=10;
+            else
+                this.buttonInfo.y = -100;
+        }
+
+
+        this.tutorial[0].visible = this.currentLevel===0;
+        this.tutorial[1].visible = this.currentLevel===1;
+
+
+
+        if (this.tutorialVisible)
+        {
+            if (this.tutorialOverlay.y<GAME_HEIGHT/2)
+                this.tutorialOverlay.y +=100;
+            else
+                this.tutorialOverlay.y = GAME_HEIGHT/2;
+
+            if (this.tutorialOverlay.alpha<0.95)
+                this.tutorialOverlay.alpha +=0.05;
+            else
+                this.tutorialOverlay.alpha = 1;
+
+
+        }
+        else
+        {
+
+            if (this.tutorialOverlay.y>-GAME_HEIGHT/2)
+                this.tutorialOverlay.y -=100;
+            else
+                this.tutorialOverlay.y = -GAME_HEIGHT/2;
+
+
+            if (this.tutorialOverlay.alpha>0.05)
+                this.tutorialOverlay.alpha -=0.05;
+            else
+                this.tutorialOverlay.alpha = 0;
+        }
+
+
+
+        this.buttonInfo.x = GAME_WIDTH/2-100;
+
+        this.tutorialOverlay.x = GAME_WIDTH/2;
+
         let scaleP = (GAME_WIDTH-1000)/1000
 
 
@@ -1212,7 +1306,7 @@ GameState.prototype = {
                 {
 
 
-                    if (this.gameplayActive)
+                    if (this.gameplayActive && !this.tutorialVisible)
                         if (this.timeLeft > 0)
                             this.timeLeft -= 1 / 60 * TIME_SCALE;
 
@@ -1231,7 +1325,7 @@ GameState.prototype = {
                     }
 
 
-                    if (this.gameplayActive) {
+                    if (this.gameplayActive && !this.tutorialVisible) {
                         for (let i = 0; i < 3; i++) {
                             if (this.flowerToolTime[i] > 0)
                                 this.flowerToolTime[i] -= 1 / 60 * TIME_SCALE;
@@ -1376,7 +1470,7 @@ GameState.prototype = {
 
                 if (!this.gameOver) {
 
-                    if (this.gameplayActive)
+                    if (this.gameplayActive && !this.tutorialVisible)
                         if (this.timeLeft > 0)
                             this.timeLeft -= 1 / 60 * TIME_SCALE;
 
@@ -1401,7 +1495,7 @@ GameState.prototype = {
                     }
 
 
-                    if (this.gameplayActive) {
+                    if (this.gameplayActive && !this.tutorialVisible) {
                         this.nextTime -= 1 / 60;
 
 
