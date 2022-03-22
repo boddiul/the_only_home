@@ -1242,7 +1242,7 @@ GameState.prototype = {
         {
             this.levelGroup[i].x = GAME_WIDTH/2;
 
-            this.button_transition[i].alpha = this.levelPass[i]>0 ? 0.5 : 1;
+            this.button_transition[i].alpha = this.levelPass[i]>0 ? 0.3 : 1;
         }
 
 
