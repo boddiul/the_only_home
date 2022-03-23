@@ -5,7 +5,7 @@ GameState = function (game) {
 };
 
 
-TIME_PER_LEVEL = [59,59,30];
+TIME_PER_LEVEL = [[59,59,35],[59,49,16]];
 TIME_SCALE = 1;
 
 TRASHCAN_NUM = 8;
@@ -16,6 +16,8 @@ GameState.prototype = {
 
 
     create : function () {
+
+        this.gameMode = 0;
 
 
         this.menuState = -1;
@@ -142,6 +144,7 @@ GameState.prototype = {
 
         let b_pos = [[100,360],[-470,690],[230,1050]]
         this.button_transition = []
+        this.buttonShown = false;
 
         for (let i=0;i<3;i++)
         {
@@ -426,7 +429,19 @@ GameState.prototype = {
         this.windowWin = game.add.button(0,0,"window_win",function () {
 
             if (this.canClick)
+            {
+
+                if (this.levelPass[0]>0 && this.levelPass[1]>0 && this.levelPass[2]>0)
+                {
+                    if (!this.outroDone)
+                        this.showOutro();
+                }
+
                 this.closeLevel();
+            }
+
+
+
         },this)
         this.windowWin.anchor.set(0.5,0.5);
         this.gameOverGroup.add(this.windowWin);
@@ -506,7 +521,30 @@ GameState.prototype = {
 
 
 
-        this.outro_box = game.add.image(0,-GAME_HEIGHT/2,'outro_box');
+        this.canClickOutro = false;
+        this.outro_box = game.add.button(0,-GAME_HEIGHT/2,'outro_box',function () {
+
+            this.gameMode = 1;
+
+            for (let i=0;i<3;i++)
+            {
+
+                this.button_transition[i].setFrames(6+3+i,6+i,6+3+i,6+i)
+            }
+
+            let tween2 = this.game.add.tween(this.outro_box);
+            tween2.to({y:-GAME_HEIGHT/2},
+                Phaser.Timer.SECOND*0.75,
+                Phaser.Easing.Cubic.InOut
+            );
+
+            tween2.onComplete.add(function () {
+
+
+            }.bind(this));
+            tween2.start();
+
+        },this);
 
         this.outro_box.anchor.set(0.5,0.5);
         this.overlay.add(this.outro_box)
@@ -532,22 +570,6 @@ GameState.prototype = {
             this.nextMenuState();
         }.bind(this))
         tween2.start();
-        /*
-
-        let tween = this.game.add.tween(this.intro);
-
-        tween.to({alpha:0},
-            Phaser.Timer.SECOND*0.5,
-            Phaser.Easing.Quartic.In,
-            true,
-            Phaser.Timer.SECOND*0.5
-        );
-        tween.onComplete.add(function () {
-            this.intro.visible = false;
-            this.nextMenuState();
-        }.bind(this));
-        tween.start();*/
-
         this.levelPass = [0,0,0];
 
         this.outroDone = false;
@@ -559,7 +581,7 @@ GameState.prototype = {
         this.sndEl = this.game.add.audio("el",0.3,false);
         this.sndMusic = this.game.add.audio("music",0.4,true);
         this.sndNight = this.game.add.audio("night",0.3,false);
-        this.sndSwitch = this.game.add.audio("switch",0.3,false);
+        this.sndSwitch = this.game.add.audio("switch",0.2,false);
         this.sndTap = this.game.add.audio("tap",0.3,false);
         this.sndTrash = this.game.add.audio("trash",0.3,false);
         this.sndWater = this.game.add.audio("water",0.3,false);
@@ -702,11 +724,15 @@ GameState.prototype = {
             Phaser.Timer.SECOND*0.75,
             Phaser.Easing.Cubic.InOut,
             false,
-            Phaser.Timer.SECOND*1.5
+            Phaser.Timer.SECOND*1
         );
 
         tween.onComplete.add(function () {
 
+
+            this.canClickOutro = true;
+
+            /*
             let tween2 = this.game.add.tween(this.outro_box);
             tween2.to({y:-GAME_HEIGHT/2},
                 Phaser.Timer.SECOND*0.75,
@@ -721,7 +747,7 @@ GameState.prototype = {
 
             }.bind(this));
             tween2.start();
-
+            */
 
 
         }.bind(this));
@@ -742,6 +768,7 @@ GameState.prototype = {
                 Phaser.Easing.Quartic.Out
             );
             tween.onComplete.add(function () {
+                this.buttonShown = true;
             }.bind(this));
             tween.start();
         }
@@ -774,7 +801,7 @@ GameState.prototype = {
         tween.start();
 
 
-        this.initLevel(true);
+        this.initLevel((this.levelPass[i]===0 && this.gameMode===0) );
 
 
     },
@@ -823,7 +850,7 @@ GameState.prototype = {
         this.gameplayActive = false;
         this.gameOverGroup.y = - GAME_HEIGHT/2;
 
-        this.timeLeft = TIME_PER_LEVEL[this.currentLevel];
+        this.timeLeft = TIME_PER_LEVEL[this.gameMode][this.currentLevel];
         this.gameOver = false;
 
         this.gameWin = false;
@@ -848,8 +875,9 @@ GameState.prototype = {
                 break;
             case 1:
 
-
-
+                for (let i = 0; i < 8; i++) {
+                    this.lightOn[i] = false;
+                }
                 this.nextTime = 2;
                 this.energy = 1;
 
@@ -986,7 +1014,7 @@ GameState.prototype = {
                 if (this.selectedFlowerButton===2)
                     this.sndTap.play();
 
-                this.flowerSickDelay[i] = 1;
+                this.flowerSickDelay[i] = (this.gameMode === 0 ? 1 : 0.5);
                 this.flowerSick[i] = -1;
 
 
@@ -1112,14 +1140,8 @@ GameState.prototype = {
         this.canClick = false;
 
 
-        this.levelPass[this.currentLevel] = 1;
+        this.levelPass[this.currentLevel] = (this.gameMode===0) ? 1 : 2;
 
-
-        if (this.levelPass[0]>0 && this.levelPass[1]>0 && this.levelPass[2]>0)
-        {
-            if (!this.outroDone)
-                this.showOutro();
-        }
 
         this.sndWin.play();
 
@@ -1224,7 +1246,7 @@ GameState.prototype = {
 
 
         this.intro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
-        this.outro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
+        this.outro_box.scale.set(0.6+scaleP*0.3,0.6+scaleP*0.3)
 
         //this.back.x = -(1280-GAME_WIDTH)/2;
 
@@ -1242,7 +1264,8 @@ GameState.prototype = {
         {
             this.levelGroup[i].x = GAME_WIDTH/2;
 
-            this.button_transition[i].alpha = this.levelPass[i]>0 ? 0.3 : 1;
+            if (this.buttonShown)
+                this.button_transition[i].alpha = (this.levelPass[i]>0 && this.gameMode===0) || (this.levelPass[i]>1 && this.gameMode===1) ? 0.3 : 1;
         }
 
 
@@ -1365,7 +1388,7 @@ GameState.prototype = {
                             if (this.flowerSick[i] === -1) {
 
 
-                                if (Math.random() < 1 / (240*2 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl < 2) {
+                                if (Math.random() < 1 / (240*2 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl <  (this.gameMode === 0 ? 2 : 3)) {
 
                                     this.flowerSick[i] = Math.floor(Math.random() * 3)
 
@@ -1378,7 +1401,7 @@ GameState.prototype = {
                                     if (this.flowerSick[i]===2)
                                         this.sndNight.play();
 
-                                    this.flowerDeath[i] = 5.5;
+                                    this.flowerDeath[i] =  (this.gameMode === 0 ? 5.5 : 4.0)
 
                                 }
                             }
@@ -1506,7 +1529,7 @@ GameState.prototype = {
                             let changeWas = false;
                             for (let i = 0; i < 8; i++)
                             {
-                                if (Math.random() < 0.3)
+                                if (Math.random() < (this.gameMode === 0 ? 0.3 : 0.5))
                                 {
 
                                     this.lightOn[i] = true;
