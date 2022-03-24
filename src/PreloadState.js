@@ -130,6 +130,7 @@ PreloadState.prototype = {
         game.load.audiosprite('trash','assets/audio/trash.mp3');
         game.load.audiosprite('water','assets/audio/water.mp3');
         game.load.audiosprite('win','assets/audio/win.mp3');
+        game.load.audiosprite('night','assets/audio/night.mp3');
 
         for (let i=1;i<=21;i++)
             game.load.audiosprite('note'+(i),'assets/audio/'+i+'.mp3');
