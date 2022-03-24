@@ -1388,7 +1388,7 @@ GameState.prototype = {
                             if (this.flowerSick[i] === -1) {
 
 
-                                if (Math.random() < 1 / (240*2 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl <  (this.gameMode === 0 ? 2 : 3)) {
+                                if (Math.random() < (this.gameMode === 0 ? 1 : 1.8) / (240*2 / TIME_SCALE) && this.flowerSickDelay[i] <= 0 && sfl <  (this.gameMode === 0 ? 2 : 3)) {
 
                                     this.flowerSick[i] = Math.floor(Math.random() * 3)
 
@@ -1529,7 +1529,7 @@ GameState.prototype = {
                             let changeWas = false;
                             for (let i = 0; i < 8; i++)
                             {
-                                if (Math.random() < (this.gameMode === 0 ? 0.3 : 0.5))
+                                if (Math.random() < (this.gameMode === 0 ? 0.3 : 0.525))
                                 {
 
                                     this.lightOn[i] = true;
