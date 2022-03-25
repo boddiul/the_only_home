@@ -109,6 +109,7 @@ PreloadState.prototype = {
 
         game.load.image('intro_box', 'assets/intro_box.png');
         game.load.image('outro_box', 'assets/outro_box.png');
+        game.load.image('outro2_box', 'assets/outro2_box.png');
 
 
         game.load.spritesheet('window_win', 'assets/window_win.png',3364/3,1312);

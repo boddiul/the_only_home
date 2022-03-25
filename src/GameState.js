@@ -431,11 +431,22 @@ GameState.prototype = {
             if (this.canClick)
             {
 
-                if (this.levelPass[0]>0 && this.levelPass[1]>0 && this.levelPass[2]>0)
-                {
-                    if (!this.outroDone)
-                        this.showOutro();
-                }
+                if (this.gameMode===0)
+                    if (this.levelPass[0]>0 && this.levelPass[1]>0 && this.levelPass[2]>0)
+                    {
+                        if (!this.outroDone)
+                            this.showOutro();
+                    }
+
+
+                if (this.gameMode===1)
+                    if (this.levelPass[0]>1 && this.levelPass[1]>1 && this.levelPass[2]>1)
+                    {
+                        if (!this.outro2Done)
+                            this.showOutro2();
+                    }
+
+
 
                 this.closeLevel();
             }
@@ -524,30 +535,61 @@ GameState.prototype = {
         this.canClickOutro = false;
         this.outro_box = game.add.button(0,-GAME_HEIGHT/2,'outro_box',function () {
 
-            this.gameMode = 1;
-
-            for (let i=0;i<3;i++)
+            if (this.canClickOutro)
             {
+                this.gameMode = 1;
 
-                this.button_transition[i].setFrames(6+3+i,6+i,6+3+i,6+i)
+                for (let i=0;i<3;i++)
+                {
+
+                    this.button_transition[i].setFrames(6+3+i,6+i,6+3+i,6+i)
+                }
+
+                let tween2 = this.game.add.tween(this.outro_box);
+                tween2.to({y:-GAME_HEIGHT/2},
+                    Phaser.Timer.SECOND*0.75,
+                    Phaser.Easing.Cubic.InOut
+                );
+
+                tween2.onComplete.add(function () {
+
+
+                }.bind(this));
+                tween2.start();
             }
 
-            let tween2 = this.game.add.tween(this.outro_box);
-            tween2.to({y:-GAME_HEIGHT/2},
-                Phaser.Timer.SECOND*0.75,
-                Phaser.Easing.Cubic.InOut
-            );
-
-            tween2.onComplete.add(function () {
-
-
-            }.bind(this));
-            tween2.start();
 
         },this);
 
         this.outro_box.anchor.set(0.5,0.5);
         this.overlay.add(this.outro_box)
+
+
+
+        this.canClickOutro2 = false;
+        this.outro2_box = game.add.button(0,-GAME_HEIGHT/2,'outro2_box',function () {
+
+            if (this.canClickOutro2)
+            {
+
+                let tween2 = this.game.add.tween(this.outro2_box);
+                tween2.to({y:-GAME_HEIGHT/2},
+                    Phaser.Timer.SECOND*0.75,
+                    Phaser.Easing.Cubic.InOut
+                );
+
+                tween2.onComplete.add(function () {
+
+
+                }.bind(this));
+                tween2.start();
+            }
+
+
+        },this);
+
+        this.outro2_box.anchor.set(0.5,0.5);
+        this.overlay.add(this.outro2_box)
 
 
 
@@ -573,20 +615,23 @@ GameState.prototype = {
         this.levelPass = [0,0,0];
 
         this.outroDone = false;
+        this.outro2Done = false;
 
 
-        this.sndAntiBugs = this.game.add.audio("antibugs",0.3,false);
-        this.sndBugs = this.game.add.audio("bugs",0.3,false);
-        this.sndDry = this.game.add.audio("dry",0.3,false);
-        this.sndEl = this.game.add.audio("el",0.3,false);
-        this.sndMusic = this.game.add.audio("music",0.4,true);
-        this.sndNight = this.game.add.audio("night",0.25,false);
-        this.sndSwitch = this.game.add.audio("switch",0.2,false);
-        this.sndTap = this.game.add.audio("tap",0.3,false);
-        this.sndTrash = this.game.add.audio("trash",0.3,false);
-        this.sndWater = this.game.add.audio("water",0.3,false);
-        this.sndWin = this.game.add.audio("win",0.3,false);
+        this.sndAntiBugs =  this.game.add.audio("antibugs",0.3,false);
+        this.sndBugs =      this.game.add.audio("bugs",0.3,false);
+        this.sndDry =       this.game.add.audio("dry",0.3,false);
 
+        this.sndEl =        this.game.add.audio("el",0.3,false);
+        this.sndMusic =     this.game.add.audio("music",0.4,true);
+        this.sndNight =     this.game.add.audio("night",0.25,false);
+
+        this.sndSwitch =    this.game.add.audio("switch",0.2,false);
+        this.sndTap =       this.game.add.audio("tap",0.3,false);
+        this.sndTrash =     this.game.add.audio("trash",0.3,false);
+
+        this.sndWater =     this.game.add.audio("water",0.3,false);
+        this.sndWin =       this.game.add.audio("win",0.3,false);
         this.sndNote = [];
 
         for (let i=1;i<=21;i++)
@@ -732,22 +777,32 @@ GameState.prototype = {
 
             this.canClickOutro = true;
 
-            /*
-            let tween2 = this.game.add.tween(this.outro_box);
-            tween2.to({y:-GAME_HEIGHT/2},
-                Phaser.Timer.SECOND*0.75,
-                Phaser.Easing.Cubic.InOut,
-                false,
-                Phaser.Timer.SECOND*6.5
-            );
 
-            tween2.onComplete.add(function () {
+        }.bind(this));
+        tween.start();
 
 
+    },
 
-            }.bind(this));
-            tween2.start();
-            */
+
+    showOutro2 : function() {
+
+
+        this.outro2Done = true;
+
+
+        let tween = this.game.add.tween(this.outro2_box);
+        tween.to({y:GAME_HEIGHT/2},
+            Phaser.Timer.SECOND*0.75,
+            Phaser.Easing.Cubic.InOut,
+            false,
+            Phaser.Timer.SECOND*1
+        );
+
+        tween.onComplete.add(function () {
+
+
+            this.canClickOutro2 = true;
 
 
         }.bind(this));
@@ -755,6 +810,8 @@ GameState.prototype = {
 
 
     },
+
+
 
     showButtons : function() {
         for (let i=0;i<3;i++)
@@ -894,7 +951,7 @@ GameState.prototype = {
                 break;
         }
 
-
+        this.tutorialVisible = false;
         if (firstStart)
         {
 
@@ -1247,6 +1304,7 @@ GameState.prototype = {
 
         this.intro_box.scale.set(0.7+scaleP*0.3,0.7+scaleP*0.3)
         this.outro_box.scale.set(0.6+scaleP*0.3,0.6+scaleP*0.3)
+        this.outro2_box.scale.set(0.6+scaleP*0.3,0.6+scaleP*0.3)
 
         //this.back.x = -(1280-GAME_WIDTH)/2;
 
@@ -1529,7 +1587,7 @@ GameState.prototype = {
                             let changeWas = false;
                             for (let i = 0; i < 8; i++)
                             {
-                                if (Math.random() < (this.gameMode === 0 ? 0.3 : 0.525))
+                                if (Math.random() < (this.gameMode === 0 ? 0.3 : 0.45))
                                 {
 
                                     this.lightOn[i] = true;
@@ -1548,12 +1606,12 @@ GameState.prototype = {
                             }
 
 
-                            this.nextTime = 2;
+                            this.nextTime = (this.gameMode === 0 ? 2 : 1.5);
                         }
                     }
                     for (let i = 0; i < 8; i++)
                         if (this.lightOn[i])
-                            this.energy -= 0.0003 * TIME_SCALE * 0.5
+                            this.energy -= 0.0003 * TIME_SCALE * (this.gameMode === 0 ? 0.5 : 0.4)
 
 
                     if (this.energy < 0) {
