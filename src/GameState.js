@@ -415,6 +415,7 @@ GameState.prototype = {
 
         this.logo = game.add.image(0,600,'logo');
         this.logo.anchor.set(0.5,0);
+        this.logo.scale.set(0.84,0.84)
         this.intro.add(this.logo);
 
         this.intro.alpha =0;
